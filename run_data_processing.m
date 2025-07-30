@@ -1,6 +1,7 @@
 % .m file to process all data for locness mission
 clear all; close all;
-addpath(genpath('C:\Users\spraydata\Documents\GitHub\'))
+addpath(genpath('C:\Users\spraydata\Documents\GitHub\'));
+rmpath(genpath('C:\Users\spraydata\Documents\GitHub\MBARIWireWalker'));
 %% Controlls
 processShipData = 0;
 %% Pull the latest shipboard data, resample, and write to map product
