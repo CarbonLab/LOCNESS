@@ -1,20 +1,23 @@
 clear all; close all;
 %% Controls:
+forceprocess = 0;
 sendemails = 1;
+dbg = 1;
 %%
 MissionID = '25706901';
 basepath = fullfile('\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\','Spray_Data'); % Create basepath to 901805/Spray_Data/
 missionpath = fullfile(basepath,MissionID); % Create missionpath to Spray_Data/missionID
 file = fullfile(missionpath,"0069.sat");
+logfile = 'C:\Users\spraydata\Documents\GitHub\LOCNESS\logs\debugging_log.txt';
 %% Determine current file size (bytes)
 if isfile(file)
     finfo = dir(file); % Get file info
     fsizeold = finfo.bytes; % Get file size in bytes
     close('all')
-%     WriteLog(dbg, logfile, 'File exists')
+    WriteLog(dbg, logfile, 'File exists')
 else
     fsizeold = 0;
-%     WriteLog(dbg, logfile, 'File does not exist')
+    WriteLog(dbg, logfile, 'File does not exist')
 end
 %% Determine new file size (bytes)
 command = 'aws s3api head-object --bucket sio-idg --key spray/sushi/active/0069.sat --profile yui'; 
@@ -24,25 +27,27 @@ command = 'aws s3api head-object --bucket sio-idg --key spray/sushi/active/0069.
 if status == 0
     metadata = jsondecode(output);
     fsizenew = metadata.ContentLength;
-%     WriteLog(dbg, logfile, 'json decoded')
+    WriteLog(dbg, logfile, 'json decoded')
 else
-    warning('Failed to get file metadata:\n%s', output);
-%     WriteLog(dbg, logfile, 'failed to decode json')
+%     warning('Failed to get file metadata:\n%s', output);
+    WriteLog(dbg, logfile, 'failed to decode json')
 end
 %% Compare current fsize to new fsize. If same stop here. If new > current then download and process data
 if fsizenew == fsizeold
     disp('File unchanged')
-%     WriteLog(dbg, logfile, 'file size unchanged')
-%     WriteLog(dbg, logfile, 'END OF RUN')
-    return; % End script
+    WriteLog(dbg, logfile, 'file size unchanged')
+    WriteLog(dbg, logfile, 'END OF RUN')
+    if forceprocess == 0
+        return; % End script
+    end
 else
     disp('New data received, proceeding with download and processing!')
-%     WriteLog(dbg, logfile, 'new data received!')
+    WriteLog(dbg, logfile, 'new data received!')
 end
 %% Download data from IDG's AWS bucket
 command = ['aws s3 --profile yui cp s3://sio-idg/spray/sushi/active/0069.sat ', missionpath];
 system(command, '-echo');
-% WriteLog(dbg, logfile, '.sat downloaded')
+WriteLog(dbg, logfile, '.sat downloaded')
 %%
 pmin = 0;
 pstep = 2;
@@ -51,6 +56,8 @@ pd = 'd'; % bin by depth
 opname = 'Ben Werb';
 
 [data,bindata] = allsat(file,pmin,pstep,pmax,pd,opname);
+WriteLog(dbg, logfile, 'New data processed to mat file')
+
 % Make it fit our gliderviz standard format
 s.sdn = bindata.time' / 86400 + datenum(1970,1,1); % back to matlab sdn
 s.sdn_ = bindata.time_' / 86400 + datenum(1970,1,1); % back to matlab sdn
@@ -80,9 +87,9 @@ for i = 1:length(matvars)
 end
 filename = fullfile(missionpath, [char(MissionID), 'sat.mat']);
 save(filename, 's')
-
+WriteLog(dbg, logfile, 's struct created and saved')
 % Send ODSS
-if sendemails ~= 1 % Don't send ODSS if testing
+if sendemails == 1 % Don't send ODSS if testing
     % Update last location to ODSS
     update_ODSS_pos('SN069',s.sdn(end),s.lon(end),s.lat(end));
     % Need to find next waypoint to ODSS
