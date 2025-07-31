@@ -58,12 +58,6 @@ s.divedir(1,:) = -1 ;
 %d = isnan(s.pres) ;
 %s.divedir(d) = NaN; % no data
 
-% if it is Spray1 glider that samples only on ASCENTS, swap the divedir
-if strcmp(s.depID(4:end-2), '069') == 1
-    s.divedir = s.divedir .* -1 ;
-else
-end
-
 % preallocate variables for averages
 s.mld = nan(size(s.sdn));
 s.psal_mld = nan(size(s.sdn));
@@ -228,6 +222,12 @@ clear pressure_prof density_prof ref_idx density_ref depth_ref
         s.pH25atm_mld(i) = nanmean([ph25d_mean ph25a_mean]) ;
         s.rhodamine_mld(i) = nanmean([rd_mean ra_mean]) ;
 
+end
+% if it is Spray1 glider that samples only on ASCENTS, swap the divedir
+if strcmp(s.depID(4:end-2), '069') == 1
+    s.divedir = s.divedir .* -1 ;
+    s.direction = s.direction .* -1;
+else
 end
 
 end
