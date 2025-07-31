@@ -15,7 +15,8 @@ opts.EmptyLineRule = "read";
 opts = setvaropts(opts, ["Cruise", "Platform", "Layer", "CastDirection"], "EmptyFieldRule", "auto");
 
 % Import the data
-T = readtable("LocNessMapProduct.txt", opts); % my local version
+MapProduct = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\LocnessMapProduct.txt';
+T = readtable(MapProduct, opts); % my local version
 clear opts 
 
 % convert to datetime
