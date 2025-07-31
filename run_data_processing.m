@@ -54,7 +54,7 @@ catch
     disp('Failed to copy map product to Gliderviz')
 end
 %% Convert map product to kml and push latest data to ODSS
-try
+try % Add a check
     tic;
     run C:\Users\spraydata\Documents\GitHub\LOCNESS\write_ODSS.m;
     updateODSS = toc;
