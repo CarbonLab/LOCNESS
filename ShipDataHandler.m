@@ -18,6 +18,9 @@ classdef ShipDataHandler < handle
     properties (Access = private)
         TT  % The resampled timetable
     end
+    properties (Access = public)
+        currentPosition
+    end
 
     methods
         function downloadStatus = downloadData(obj)
@@ -36,28 +39,7 @@ classdef ShipDataHandler < handle
         end
 
         function resampleData(obj, n)
-%             % RESAMPLEDATA - Resample CSV data to n-minute interval and save
-%             inputFile = fullfile(obj.localFolder, '7day-sensor-data_resampled.csv');
-% %             outputFile = fullfile(obj.localFolder, sprintf('7day-sensor-data_%dmin.txt', n));
-% 
-%             % Read table
-%             opts = detectImportOptions(inputFile);
-%             opts.SelectedVariableNames = {'timestamp', 'lat', 'lon', 'rhodamine', 'ph', 'temp', 'salinity', 'ph_ma'};
-%             opts.VariableTypes = {'datetime','double','double','double','double','double','double','double'};
-%             T = readtable(inputFile, opts);
-%             if ~isdatetime(T.timestamp)
-%                 T.Time = datetime(T.timestamp, 'InputFormat', 'yyyy-MM-dd HH:mm:ss', "TimeZone", "UTC");
-%             else
-%                 T.Time = T.timestamp;
-%             end
-%             tempTT = table2timetable(T, 'RowTimes', 'Time'); % Intermediate table 
-% 
-%             % Resample
-%             obj.TT = retime(tempTT, 'regular', 'mean', 'TimeStep', minutes(n)); % Change the gps to be 'last'
-
-            % Write to output
-%             writetimetable(TT, outputFile);
-
+            % RESAMPLEDATA - Resample CSV data to n-minute interval and save
             pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
                 true,"OutputType","table","SelectedVariableNames",obj.shipDataVars);
             T = pds.readall;
@@ -117,6 +99,8 @@ classdef ShipDataHandler < handle
                 T_old.Properties.VariableNames = obj.mapProductVars; % Ensure correct var names
                 iappend = ~ismember(MapProduct(:,"unixTimestamp"), T_old(:,"unixTimestamp"),'rows'); % Unique row index
                 writetable(MapProduct(iappend,:),obj.mapProductFile,"WriteMode","append"); % Append new rows
+                d = MapProduct(iappend,:); % new rows
+                obj.currentPosition = d(end,:); % last row
             elseif ~isfile(obj.mapProductFile)
                 writetable(MapProduct,obj.mapProductFile,"WriteMode","overwrite")
             end
