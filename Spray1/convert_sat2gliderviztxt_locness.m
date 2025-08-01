@@ -208,6 +208,11 @@ if(isfield(s, 'rhodamine'))
     flt.RHODAMINE = s.rhodamine;
     flt.RHODAMINE_FLAG = s.pres_QC;
 end
+% add RHODAMINE if available
+if(isfield(s, 'divedir'))
+    flt.DIVEDIR = s.divedir;
+    flt.DIVEDIR_FLAG = s.divedir_QC;
+end
 
 % add any additional variables here.
 
@@ -264,6 +269,7 @@ flt_vars(27,:) = {'IK[nA]'              '%1.2f'  'IK' '' '' ''};
 flt_vars(28,:) = {'Ib[nA]'              '%1.2f'  'IB' '' '' ''};
 flt_vars(29,:) = {'PHIN_CANYONB[Total]'       '%0.4f' 'PHIN_CANYONB' '' '' ''};
 flt_vars(30,:) = {'RHODAMINE[ppb]'          '%0.4f'  'RHODAMINE' '' '' ''};
+flt_vars(31,:) = {'DIVEDIR'          '%d'  'DIVEDIR' '' '' ''};
 
 % add additional variables here.
 

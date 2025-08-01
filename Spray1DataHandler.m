@@ -79,6 +79,16 @@ s.pdens = bindata.sigma;
 s.rhodamine = bindata.fl;
 s.pHin = nan(size(s.depth));
 s.pH25atm = nan(size(s.depth));
+s.divedir = nan(size(s.depth));
+s.divedir(~inan) = 1;
+s.ta_canb = nan(size(s.depth));
+s.pHin_canb = nan(size(s.depth));
+s.pHin_canbtadic = nan(size(s.depth));
+s.dic_canb = nan(size(s.depth));
+s.pco2in = nan(size(s.depth));
+s.co2in = nan(size(s.depth));
+s.satarin = nan(size(s.depth));
+s.satcain = nan(size(s.depth));
 allvars = fieldnames(s);
 matvars = allvars(~ismember(allvars,vec_vars));
 % now make QC fields
@@ -91,9 +101,14 @@ WriteLog(dbg, logfile, 's struct created and saved')
 % Send ODSS
 if sendemails == 1 % Don't send ODSS if testing
     % Update last location to ODSS
-    update_ODSS_pos('SN069',s.sdn(end),s.lon(end),s.lat(end));
+    update_ODSS_pos('SN069',s.sdn(end),s.lon(end),s.lat(end)); % last position
+    last_dive_duration = s.sdn_(2,end-1) - s.sdn_(1,end-1);
+    prj_time = s.sdn(end)+last_dive_duration; % projected time is same as the previous dive duration + dive_start time
+    update_ODSS_pos('SN069_nxtwpt',prj_time,data.eng.en.wlon(end),data.eng.en.wlat(end)); % last position
     % Need to find next waypoint to ODSS
 %     nxtwpt = t.eng.wpt.pts{(1)}; % 1: lat, 2: lon
 %     update_ODSS_pos('SN069_nxtwpt',s.sdn(end),nxtwpt(2),nxtwpt(1));
     WriteLog(dbg, logfile, 'update odss successful')
 end
+convert_sat2gliderviztxt_locness(s,s.depID,true);
+WriteLog(dbg, logfile, 'GliderViz file created and uploaded');
