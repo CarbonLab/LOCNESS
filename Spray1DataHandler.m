@@ -65,6 +65,9 @@ s.lat = bindata.lat';
 s.lon = bindata.lon';
 s.lat_ = bindata.lat_';
 s.lon_ = bindata.lon_';
+s.nxtlat_proj = nan(size(s.lat));
+s.nxtlon_proj = nan(size(s.lon));
+s.nxtsurface_proj = nan(size(s.sdn));
 s.position_QC = zeros(size(s.sdn));
 s.depID = MissionID;
 vec_vars = fieldnames(s);
@@ -95,6 +98,9 @@ matvars = allvars(~ismember(allvars,vec_vars));
 for i = 1:length(matvars)
     s.([matvars{i},'_QC']) = zeros(size(s.tc));
 end
+[s.nxtlat_proj(end), s.nxtlon_proj(end)] = nxtwpt_proj(t,1); % 1 for spray 1
+last_dive_duration = s.sdn_(2,end-1) - s.sdn_(1,end-1);
+s.nxtsurface_proj(end) = s.sdn(end)+last_dive_duration; % projected time is same as the previous dive duration + dive_start time
 filename = fullfile(missionpath, [char(MissionID), 'sat.mat']);
 save(filename, 's')
 WriteLog(dbg, logfile, 's struct created and saved')
@@ -102,9 +108,9 @@ WriteLog(dbg, logfile, 's struct created and saved')
 if sendemails == 1 % Don't send ODSS if testing
     % Update last location to ODSS
     update_ODSS_pos('SN069',s.sdn(end),s.lon(end),s.lat(end)); % last position
-    last_dive_duration = s.sdn_(2,end-1) - s.sdn_(1,end-1);
-    prj_time = s.sdn(end)+last_dive_duration; % projected time is same as the previous dive duration + dive_start time
-    update_ODSS_pos('SN069_nxtwpt',prj_time,t.eng.en.wlon(end),t.eng.en.wlat(end)); % last position
+%     last_dive_duration = s.sdn_(2,end-1) - s.sdn_(1,end-1);
+%     prj_time = s.sdn(end)+last_dive_duration; % projected time is same as the previous dive duration + dive_start time
+    update_ODSS_pos('SN069_nxtwpt',s.nxtsurface_proj(end),s.nxtlon_proj(end),s.nxtlat_proj(end)); % last position
     WriteLog(dbg, logfile, 'update odss successful')
 end
 convert_sat2gliderviztxt_locness(s,s.depID,true);

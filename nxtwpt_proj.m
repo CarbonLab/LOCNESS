@@ -1,4 +1,4 @@
-function [lat_predict, lon_predict] = ntxwpt(t,glider);
+function [lat_predict, lon_predict] = nxtwpt_proj(t,glider)
 % input: 
 % 't' (engineering struct)
 % glider: 1 or 2 (Spray1 or Spray2)
@@ -28,7 +28,7 @@ dy = t.gps.lat.diveend(end) - t.gps.lat.divestart(end) ;
         
         % assume its going to the next waypoint
             if ~isempty(idx) && idx < size(allWpts,1)
-                newWpt = allWpts(idx + 1, :)
+                newWpt = allWpts(idx + 1, :);
             elseif isempty(idx)
                 disp('Target waypoint not found.');
             else
@@ -71,16 +71,16 @@ dy = t.lat(end,2) - t.lat(end,1) ;
     % if it is within 1 km from WP, then take waypoint from master list
     if(distwp1<1)
         % ++++ may break here if index moves +++++
-        d = ~isempty(t.eng.wpt.index)
+        d = ~isempty(t.eng.wpt.index);
         nonempty_idx = find(~cellfun('isempty', t.eng.wpt.index));
         allWpts = [t.eng.wpt.lat(nonempty_idx) t.eng.wpt.lon(nonempty_idx)]; 
-        allWpts = [allWpts{:}];;  
+        allWpts = [allWpts{:}];
 
         idx = find(ismember(allWpts, swp, 'rows'));
         
         % assume its going to the next waypoint
             if ~isempty(idx) && idx < size(allWpts,1)
-                newWpt = allWpts(idx + 1, :)
+                newWpt = allWpts(idx + 1, :);
             elseif isempty(idx)
                 disp('Target waypoint not found.');
             else
