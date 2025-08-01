@@ -4,9 +4,6 @@ addpath(genpath('C:\Users\spraydata\Documents\GitHub\'));
 rmpath(genpath('C:\Users\spraydata\Documents\GitHub\MBARIWireWalker'));
 %% Controlls
 processShipData = 0;
-processLRAUVData = 0;
-ProcessSpray2Data = 1;
-ProcessSpray1Data = 1;
 %% Pull the latest shipboard data, resample, and write to map product
 if processShipData == 1
     tic
@@ -17,9 +14,14 @@ if processShipData == 1
     else
         warning("Download failed. Skipping resample.");
     end
+    sdn = handler.currentPosition.unixTimestamp/ 86400 + datenum(1970,1,1);
+    lat = handler.currentPosition.lat;
+    lon = handler.currentPosition.lon;
+    update_ODSS_pos_ship('RV Connecticut', lon, lat);
     shipdownload = toc;
 end
 %% Process Spray 2 data
+ProcessSpray2Data = 1;
 if ProcessSpray2Data == 1
     try
         run C:\Users\spraydata\Documents\GitHub\Spray2_Processing\prelim_plot_spray2pH.m;
@@ -28,6 +30,7 @@ if ProcessSpray2Data == 1
     end
 end
 %% Process Spray 1 data
+ProcessSpray1Data = 1;
 if ProcessSpray1Data == 1
     try 
         run C:\Users\spraydata\Documents\GitHub\LOCNESS\Spray1DataHandler.m;
@@ -46,6 +49,7 @@ catch
     disp('Failed to process glider map product')
 end
 %% Process LRAUV data and append map product
+processLRAUVData = 0;
 if processLRAUVData == 1
     try
         tic;
