@@ -74,11 +74,11 @@ function [] = convert_sat2gliderviztxt_locness(s, missionname, is_sat)
 % *************************************************************************
 
 path = '\\sirocco\wwwroot\lobo\data\glidervizdata\';
-
+missionpath = fullfile('\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\','Spray_Data\');
 % missionname = '19402901';
 if(is_sat == 1)
-    txtfilename = [missionname,'RT.txt']; % output file name with RT extension (real time)
-    cfgfilename = [missionname,'RT.cfg']; % output file name with RT extension (real time)
+    txtfilename = [missionpath, missionname, '\', missionname,'RT.txt']; % output file name with RT extension (real time)
+    cfgfilename = [missionpath, missionname, '\', missionname,'RT.cfg']; % output file name with RT extension (real time)
 elseif (is_sat == 2)
     txtfilename = [missionname,'.txt']; % output file name
     cfgfilename = [missionname,'.cfg']; % config file name

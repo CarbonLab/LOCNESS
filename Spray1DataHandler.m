@@ -55,7 +55,7 @@ pmax = 1000;
 pd = 'd'; % bin by depth
 opname = 'Ben Werb';
 
-[data,bindata] = allsat(file,pmin,pstep,pmax,pd,opname);
+[t,bindata] = allsat(file,pmin,pstep,pmax,pd,opname);
 WriteLog(dbg, logfile, 'New data processed to mat file')
 
 % Make it fit our gliderviz standard format
@@ -104,10 +104,7 @@ if sendemails == 1 % Don't send ODSS if testing
     update_ODSS_pos('SN069',s.sdn(end),s.lon(end),s.lat(end)); % last position
     last_dive_duration = s.sdn_(2,end-1) - s.sdn_(1,end-1);
     prj_time = s.sdn(end)+last_dive_duration; % projected time is same as the previous dive duration + dive_start time
-    update_ODSS_pos('SN069_nxtwpt',prj_time,data.eng.en.wlon(end),data.eng.en.wlat(end)); % last position
-    % Need to find next waypoint to ODSS
-%     nxtwpt = t.eng.wpt.pts{(1)}; % 1: lat, 2: lon
-%     update_ODSS_pos('SN069_nxtwpt',s.sdn(end),nxtwpt(2),nxtwpt(1));
+    update_ODSS_pos('SN069_nxtwpt',prj_time,t.eng.en.wlon(end),t.eng.en.wlat(end)); % last position
     WriteLog(dbg, logfile, 'update odss successful')
 end
 convert_sat2gliderviztxt_locness(s,s.depID,true);
