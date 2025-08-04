@@ -6,7 +6,7 @@ function [lat_predict, lon_predict] = nxtwpt_proj(t,glider)
 % output:
 % predicted latitude
 % predicted longitude
-
+radiusThreshold = 1.5 ;
 if glider == 2
 
 % find current waypoint
@@ -18,11 +18,11 @@ dy = t.gps.lat.diveend(end) - t.gps.lat.divestart(end) ;
     lat_predict = t.gps.lat.diveend(end) + dy ;
     lon_predict = t.gps.lon.diveend(end) + dx; 
     
-    % flag to see if surfacing is within 2 km of current WP. 
+    % flag to see if surfacing is within 1.5 km of current WP. 
     [distwp1] = deg2km(distance(t.gps.lat.diveend(end), t.gps.lon.diveend(end), swp(1), swp(2)));
     
-    % if it is within 1 km from WP, then take waypoint from master list
-    if(distwp1<1)
+    % if it is within 1.5 km from WP, then take waypoint from master list
+    if(distwp1<radiusThreshold)
         allWpts = t.eng.wpt.list(2).pts;        
         idx = find(ismember(allWpts, swp, 'rows'));
         
@@ -65,11 +65,11 @@ dy = t.lat(end,2) - t.lat(end,1) ;
     lat_predict = t.lat(end,2) + dy ;
     lon_predict = t.lon(end,2) + dx; 
     
-    % flag to see if surfacing is within 2 km of current WP. 
+    % flag to see if surfacing is within 1.5 km of current WP. 
     [distwp1] = deg2km(distance(t.lat(end,2), t.lon(end,2), swp(1), swp(2)));
     
-    % if it is within 1 km from WP, then take waypoint from master list
-    if(distwp1<1)
+    % if it is within 1.5 km from WP, then take waypoint from master list
+    if(distwp1<radiusThreshold)
         % ++++ may break here if index moves +++++
         d = ~isempty(t.eng.wpt.index);
         nonempty_idx = find(~cellfun('isempty', t.eng.wpt.index));
