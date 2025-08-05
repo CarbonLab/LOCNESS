@@ -13,8 +13,8 @@ opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 opts = setvaropts(opts, "Cruise", "WhitespaceRule", "preserve");
 opts = setvaropts(opts, ["Cruise", "Platform", "Layer", "CastDirection"], "EmptyFieldRule", "auto");
-
-data = readtable('\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\LocnessMapProduct.txt', opts);
+filepath = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\'
+data = readtable([filepath 'LocnessMapProduct.txt'], opts);
 clear opts
 
 % ----- Separate into structs by glider -----
@@ -38,14 +38,19 @@ for i = 1:numel(glidersToCompare)
     
     % Save to CSV
     if ~isempty(results)
+        % optional: save individual results
 %         writetable(results, gliderID + "_diffs.csv");
         assignin('base', "results" + extractAfter(gliderID, 2), results);  % e.g., results069
         allResults = [allResults; results];
     end
 end
 
-% Optional: save combined results
-writetable(allResults, '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\GliderProjectionResults\all_gliders_diffs.csv');
+% Save combined results
+writetable(allResults, [filepath 'GliderProjectionResults\all_gliders_diffs.csv']);
+
+% make figures and save
+saveas(gcf,'Barchart.png')
+
 
 % ----- Function to process one glider -----
 function results = compareWPTtoSurface(T, gliderID)
