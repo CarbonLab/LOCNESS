@@ -49,7 +49,78 @@ end
 writetable(allResults, [filepath 'GliderProjectionResults\all_gliders_diffs.csv']);
 
 % make figures and save
-saveas(gcf,'Barchart.png')
+%figure(43); clf
+figure('Visible','off');
+
+sgtitle('Projected Surfacing Results')
+subplot 211
+plot(results069.surfTime, results069.timeDiffMin,'.','MarkerSize',20)
+hold on; grid on
+plot(results.surfTime, results.timeDiffMin,'^','LineWidth',2)
+ylabel('real - proj. time (min)');
+%ylim([-1 40])
+set(gca,'FontSize',14)
+txt = sprintf('SN069_{mean}: %.f%c%.f min\nSN209_{mean}: %.f%c%.f min',...
+    nanmean(results069.timeDiffMin),char(177),nanstd(results069.timeDiffMin),...
+    nanmean(results209.timeDiffMin),char(177),nanstd(results209.timeDiffMin));
+text(results069.surfTime(1)-1/24, -3,txt);
+legend('SN069','SN209');
+
+subplot 212
+plot(results069.surfTime, 1000.*results069.distance_km,'.','MarkerSize',20)
+hold on; 
+plot(results209.surfTime, 1000.*results209.distance_km,'^','LineWidth',2)
+ylabel('distance (m)')
+txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m',...
+    1000.*nanmean(results069.distance_km),char(177),1000.*nanstd(results069.distance_km),...
+    1000.*nanmean(results209.distance_km),char(177),1000.*nanstd(results209.distance_km));
+
+text(results069.surfTime(1)-1/24, 800,txt);
+
+set(gca,'FontSize',14)
+grid on
+legend('SN069','SN209')
+%ylim([-10 1000])
+saveas(gcf,[filepath 'GliderProjectionResults\projResults.png']);
+
+% plot as histogram
+%figure(44); clf
+figure('Visible','off');
+
+sgtitle('Projected Surfacing Results')
+subplot 211
+histogram(results069.timeDiffMin,10)
+hold on; grid on
+histogram(results209.timeDiffMin,10)
+
+xlabel('real - proj. time (min)')
+%ylim([0 13])
+set(gca,'FontSize',14)
+txt = sprintf('SN069_{mean}: %.f%c%.f min\nSN209_{mean}: %.f%c%.f min',...
+    nanmean(results069.timeDiffMin),char(177),nanstd(results069.timeDiffMin),...
+    nanmean(results209.timeDiffMin),char(177),nanstd(results209.timeDiffMin));
+text(-5, 10, txt);
+
+legend('SN069','SN209','Location','NW')
+
+subplot 212
+histogram(1000.*results069.distance_km,15)
+hold on; 
+histogram(1000.*results209.distance_km,15)
+xlabel('distance (m)')
+
+txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m',...
+    1000.*nanmean(results069.distance_km),char(177),1000.*nanstd(results069.distance_km),...
+    1000.*nanmean(results209.distance_km),char(177),1000.*nanstd(results209.distance_km));
+
+text(600, 5,txt);
+
+set(gca,'FontSize',14)
+grid on
+legend('SN069','SN209')
+%ylim([0 8])
+
+saveas(gcf,[filepath 'GliderProjectionResults/projResults_hist.png']);
 
 
 % ----- Function to process one glider -----
