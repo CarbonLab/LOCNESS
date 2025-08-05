@@ -51,8 +51,8 @@ end
 
 % choose only mean MLD values
 % this only takes gliders, needs to be augmented to add drifters
-k = T.Platform == 'Glider' & T.Layer == 'MLD' & T.CastDirection == 'Mean';
-rest = T(k,:) ;
+k = rest.Platform == 'Glider' & rest.Layer == 'MLD' & rest.CastDirection == 'Mean';
+rest = rest(k,:) ;
 
 data = table();
 if ~isempty(ship)
