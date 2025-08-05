@@ -99,8 +99,9 @@ for i = 1:length(matvars)
     s.([matvars{i},'_QC']) = zeros(size(s.tc));
 end
 [s.nxtlat_proj(end), s.nxtlon_proj(end)] = nxtwpt_proj(t,1); % 1 for spray 1
-last_dive_duration = s.sdn_(2,end-1) - s.sdn_(1,end-1);
-s.nxtsurface_proj(end) = s.sdn(end)+last_dive_duration; % projected time is same as the previous dive duration + dive_start time
+% last_dive_duration = s.sdn_(2,end) - s.sdn_(1,end); % last dive duration
+last_dive_duration = s.sdn_(2,end) - s.sdn_(2,end-1); % current dive end - last dive end factors in surface time
+s.nxtsurface_proj(end) = s.sdn_(2,end)+last_dive_duration; % projected time surfacing time
 filename = fullfile(missionpath, [char(MissionID), 'sat.mat']);
 save(filename, 's')
 WriteLog(dbg, logfile, 's struct created and saved')

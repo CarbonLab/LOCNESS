@@ -3,8 +3,9 @@ clear all; close all;
 addpath(genpath('C:\Users\spraydata\Documents\GitHub\'));
 rmpath(genpath('C:\Users\spraydata\Documents\GitHub\MBARIWireWalker'));
 %% Controlls
-processShipData = 0;
+% Put controls here when that is integrated into classes
 %% Pull the latest shipboard data, resample, and write to map product
+processShipData = 0;
 if processShipData == 1
     tic
     handler = ShipDataHandler();
@@ -38,7 +39,7 @@ if ProcessSpray1Data == 1
         disp('failed to run spray 1 processing')
     end
 end
-%% Load latest glider data and write to map product
+%% Load latest glider data and write to local map product 
 try
     tic
     handler = GliderDataHandler();
@@ -48,7 +49,7 @@ try
 catch
     disp('Failed to process glider map product')
 end
-%% Process LRAUV data and append map product
+%% Process LRAUV data and append local map product 
 processLRAUVData = 0;
 if processLRAUVData == 1
     try
@@ -63,7 +64,22 @@ if processLRAUVData == 1
         disp('Failed to process new LRAUV data');
     end
 end
-%% Copy map product to FTP
+%% Process LRAUV data and append local map product 
+processDrifterData = 0;
+if processDrifterData == 1
+    try
+        tic;
+        handler = DrifterDataHandler();
+        handler.downloadData();
+        handler.readCSV();
+        handler.buildTable();
+        handler.appendMapProduct(); 
+        processDrifterdata = toc;
+    catch
+        disp('Failed to process new Drifter data');
+    end
+end
+%% Copy local map product to FTP site Sirroco
 try
     tic
     outputFile = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\LocnessMapProduct.txt';
@@ -80,4 +96,10 @@ try % Add a check
     updateODSS = toc;
 catch
     disp('Failed to run write ODSS'); % add an email with error code
+end
+%% Append csv with wpt data
+try
+    run C:\Users\spraydata\Documents\GitHub\LOCNESS\evalProjection.m;
+catch
+    disp('Failed to run evalprojection.m'); % add an email with error code
 end
