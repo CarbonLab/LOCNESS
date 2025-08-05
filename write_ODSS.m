@@ -16,7 +16,7 @@ opts = setvaropts(opts, ["Cruise", "Platform", "Layer", "CastDirection"], "Empty
 
 % Import the data
 MapProduct = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\LocnessMapProduct.txt';
-T = readtable(MapProduct, opts); % my local version
+T = readtable(MapProduct, opts);
 clear opts 
 
 % convert to datetime
@@ -27,9 +27,6 @@ T.date = datetime(T.unixTimestamp, 'ConvertFrom', 'posixtime','TimeZone','UTC');
 end_time = datetime('now','TimeZone','UTC'); 
 start_time = end_time - hours(24); 
 start_time.TimeZone = "UTC";
-% trng = [datetime(2025,07,10,16,00,00) datetime(2025,07,11,16,00,00)];
-% end_time=trng(2);
-% start_time =trng(1);
 d = T.date >= start_time & T.date <= end_time ;
 T = T(d,:);
 
@@ -51,6 +48,11 @@ else
     binnedRhodamine.Data = NaN;
     binnedpH.Data = NaN;
 end
+
+% choose only mean MLD values
+% this only takes gliders, needs to be augmented to add drifters
+k = T.Platform == 'Glider' & T.Layer == 'MLD' & T.CastDirection == 'Mean';
+rest = T(k,:) ;
 
 data = table();
 if ~isempty(ship)
