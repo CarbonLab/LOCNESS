@@ -14,7 +14,7 @@ opts.EmptyLineRule = "read";
 opts = setvaropts(opts, "Cruise", "WhitespaceRule", "preserve");
 opts = setvaropts(opts, ["Cruise", "Platform", "Layer", "CastDirection"], "EmptyFieldRule", "auto");
 
-data = readtable("/Volumes/ProjectLibrary/901805_Coastal_Biogeochemical_Sensing/Locness/Data/LocnessMapProduct.txt", opts);
+data = readtable('\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\LocnessMapProduct.txt', opts);
 clear opts
 
 % ----- Separate into structs by glider -----
@@ -26,6 +26,26 @@ for i = 1:numel(platforms)
     gliderID = "SN" + platforms(i);
     S.(gliderID) = data(data.Cruise == uniVars(i), :);
 end
+
+% ----- Process all gliders you care about -----
+glidersToCompare = ["SN069", "SN209"];  % extend this list as needed
+
+allResults = table();
+for i = 1:numel(glidersToCompare)
+    gliderID = glidersToCompare(i);
+    T = S.(gliderID);
+    results = compareWPTtoSurface(T, gliderID);
+    
+    % Save to CSV
+    if ~isempty(results)
+%         writetable(results, gliderID + "_diffs.csv");
+        assignin('base', "results" + extractAfter(gliderID, 2), results);  % e.g., results069
+        allResults = [allResults; results];
+    end
+end
+
+% Optional: save combined results
+writetable(allResults, '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\GliderProjectionResults\all_gliders_diffs.csv');
 
 % ----- Function to process one glider -----
 function results = compareWPTtoSurface(T, gliderID)
@@ -62,23 +82,3 @@ function results = compareWPTtoSurface(T, gliderID)
     results.timeDiffMin = diffRows.unixTimestamp ./ 60;
     results.distance_km = diffRows.distance;
 end
-
-% ----- Process all gliders you care about -----
-glidersToCompare = ["SN069", "SN209"];  % extend this list as needed
-
-allResults = table();
-for i = 1:numel(glidersToCompare)
-    gliderID = glidersToCompare(i);
-    T = S.(gliderID);
-    results = compareWPTtoSurface(T, gliderID);
-    
-    % Save to CSV
-    if ~isempty(results)
-        writetable(results, gliderID + "_diffs.csv");
-        assignin('base', "results" + extractAfter(gliderID, 2), results);  % e.g., results069
-        allResults = [allResults; results];
-    end
-end
-
-% Optional: save combined results
-writetable(allResults, "/Volumes/ProjectLibrary/901805_Coastal_Biogeochemical_Sensing/Locness/Data/all_gliders_diffs.csv");
