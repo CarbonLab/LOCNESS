@@ -65,6 +65,8 @@ if processLRAUVData == 1
     end
 end
 %% Process LRAUV data and append local map product 
+% Might have the wrong "Cruise" for the drifters? All of the values are
+% unique
 processDrifterData = 0;
 if processDrifterData == 1
     try
@@ -75,6 +77,17 @@ if processDrifterData == 1
         handler.buildTable();
         handler.appendMapProduct(); 
         processDrifterdata = toc;
+        Drifters = unique(handler.T.Cruise);
+        % Update ODSS for each unique drifter by looping through all
+        % drifters and getting the last known time and location for each.
+        for i = 1:Drifters
+            idx = ismember(handler.T.Cruise,Drifters(i));
+            t = handler.T(idx,:);
+            sdn = t.unixTimestamp(end)/ 86400 + datenum(1970,1,1);
+            lat = t.latitude(end);
+            lon = t.longitude(end);
+            update_ODSS_pos_drifter(Drifters(i),sdn,lon,lat);
+        end
     catch
         disp('Failed to process new Drifter data');
     end
