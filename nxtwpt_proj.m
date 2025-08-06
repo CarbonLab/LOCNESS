@@ -18,17 +18,23 @@ dy = t.gps.lat.diveend(end) - t.gps.lat.divestart(end) ;
 
 % catch change in dive depth
 d = find(~isnan(t.gps.ndive.diveend)) ;
-if t.eng.command.ndive(end) == t.gps.ndive.diveend(d(end))
-    e = t.eng.command.ndive == t.gps.ndive.diveend(d(end));
+e = t.eng.command.ndive == t.gps.ndive.diveend(d(end));
+
+if sum(e) >= 1
 % find command that changes max depth
     allCmds = t.eng.command.commands(e) ;
-    diveCmds = startsWith(allCmds, '8');  % logical index
-    newMaxDepth = str2double(extractBetween(allCmds(diveCmds),3,5));
+    parts = split(allCmds, ';');
+    idx = startsWith(strtrim(parts), '8');
+    diveCmds = parts(idx);
+    hasNewDive = ~isempty(diveCmds);
+        if hasNewDive == 1
+            newMaxDepth = str2double(extractBetween(diveCmds, 3, 5));
 
-    % imperfect, but scale dx and dy appropriately
-    sf = newMaxDepth./previousDiveDepth; % sanity check - if new depth > last depth, glider will travel farther - scaling factor > 1
-    dy = dy .* sf ;
-    dx = dx .* sf ;
+            % imperfect, but scale dx and dy appropriately
+            sf = newMaxDepth./previousDiveDepth; % sanity check - if new depth > last depth, glider will travel farther - scaling factor > 1
+            dy = dy .* sf ;
+            dx = dx .* sf ;
+        end
 end
 
 % predict next lon/lat by just adding dlat or dlon to the last surfacing
@@ -91,7 +97,6 @@ if newCmd == 1
     diveCmds = parts(idx);
     hasNewDive = ~isempty(diveCmds);
         if hasNewDive == 1
-
             newMaxDepth = str2double(extractBetween(diveCmds, 3, 5));
 
             % imperfect, but scale dx and dy appropriately
