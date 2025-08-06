@@ -58,7 +58,7 @@ writetable(allResults, [filepath 'GliderProjectionResults\all_gliders_diffs.csv'
 % make figures and save
 %figure(43); clf
 figure('Visible','off');
-
+set(gcf, 'Position', [1     1   960   635])
 sgtitle('Projected Surfacing Results')
 subplot 211
 plot(results069.surfTime, results069.timeDiffMin,'.','MarkerSize',20)
@@ -84,7 +84,7 @@ txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m',...
 
 text(results069.surfTime(1)-1/24, 800,txt);
 
-set(gca,'FontSize',14)
+set(gca,'FontSize',12)
 grid on
 legend('SN069','SN209')
 %ylim([-10 1000])
@@ -96,7 +96,7 @@ saveas(gcf,[filepath 'GliderProjectionResults\projResults.png']);
 % plot as histogram
 %figure(44); clf
 figure('Visible','off');
-
+set(gcf, 'Position', [1     1   960   635])
 sgtitle('Projected Surfacing Results')
 subplot 211
 histogram(results069.timeDiffMin,10)
@@ -105,7 +105,7 @@ histogram(results209.timeDiffMin,10)
 
 xlabel('real - proj. time (min)')
 %ylim([0 13])
-set(gca,'FontSize',14)
+set(gca,'FontSize',12)
 txt = sprintf('SN069_{mean}: %.f%c%.f min\nSN209_{mean}: %.f%c%.f min',...
     nanmean(results069.timeDiffMin),char(177),nanstd(results069.timeDiffMin),...
     nanmean(results209.timeDiffMin),char(177),nanstd(results209.timeDiffMin));
