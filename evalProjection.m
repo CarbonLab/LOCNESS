@@ -14,6 +14,10 @@ opts.EmptyLineRule = "read";
 opts = setvaropts(opts, "Cruise", "WhitespaceRule", "preserve");
 opts = setvaropts(opts, ["Cruise", "Platform", "Layer", "CastDirection"], "EmptyFieldRule", "auto");
 filepath = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\'
+
+% for mac
+% filepath = '/Volumes/ProjectLibrary/901805_Coastal_Biogeochemical_Sensing/Locness/Data/'
+
 data = readtable([filepath 'LocnessMapProduct.txt'], opts);
 clear opts
 
@@ -48,6 +52,9 @@ end
 % Save combined results
 writetable(allResults, [filepath 'GliderProjectionResults\all_gliders_diffs.csv']);
 
+% for mac
+%writetable(allResults, [filepath 'GliderProjectionResults/all_gliders_diffs.csv']);
+
 % make figures and save
 %figure(43); clf
 figure('Visible','off');
@@ -81,7 +88,10 @@ set(gca,'FontSize',14)
 grid on
 legend('SN069','SN209')
 %ylim([-10 1000])
+
 saveas(gcf,[filepath 'GliderProjectionResults\projResults.png']);
+% for mac
+% saveas(gcf,[filepath 'GliderProjectionResults/projResults.png']);
 
 % plot as histogram
 %figure(44); clf
@@ -121,10 +131,48 @@ legend('SN069','SN209')
 %ylim([0 8])
 
 saveas(gcf,[filepath 'GliderProjectionResults/projResults_hist.png']);
+% for mac
+% saveas(gcf,[filepath 'GliderProjectionResults/projResults_hist.png']);
 
 
 % ----- Function to process one glider -----
+% function results = compareWPTtoSurface(T, gliderID)
+%     idx = T.Layer == 'WPT' | T.Layer == 'Surface';
+%     T = T(idx,:);
+%     T.date = datetime(T.unixTimestamp, 'ConvertFrom','posixtime');
+%     T = movevars(T, "date", "Before", "unixTimestamp");
+% 
+%     varsToSubtract = vartype('numeric');
+%     diffRows = [];
+% 
+%     for i = 1:height(T)-1
+%         if T.Layer(i) == "WPT" && T.Layer(i+1) == "Surface"
+%             rowDiff = T(i+1, :);
+%             rowDiff{:, varsToSubtract} = T{i+1, varsToSubtract} - T{i, varsToSubtract};
+%             rowDiff.distance = deg2km(distance(T{i+1, 'lat'}, T{i+1, 'lon'}, T{i, 'lat'}, T{i, 'lon'}));
+%             rowDiff.Layer = "SurfaceMinusWPT";
+%             diffRows = [diffRows; rowDiff]; %#ok<AGROW> 
+%         end
+%     end
+% 
+%     if isempty(diffRows)
+%         results = table();  % Return empty if no matches
+%         return;
+%     end
+% 
+%     diffRows = renamevars(diffRows, "date", "surfTime");
+% 
+%     results = table();
+%     results.gliderSN = repmat(gliderID, height(diffRows), 1);
+%     results.surfTime = diffRows.surfTime;
+%     results.latDiff = diffRows.lat;
+%     results.lonDiff = diffRows.lon;
+%     results.timeDiffMin = diffRows.unixTimestamp ./ 60;
+%     results.distance_km = diffRows.distance;
+% end
+
 function results = compareWPTtoSurface(T, gliderID)
+% Keep only WPT and Surface
     idx = T.Layer == 'WPT' | T.Layer == 'Surface';
     T = T(idx,:);
     T.date = datetime(T.unixTimestamp, 'ConvertFrom','posixtime');
@@ -133,14 +181,43 @@ function results = compareWPTtoSurface(T, gliderID)
     varsToSubtract = vartype('numeric');
     diffRows = [];
 
-    for i = 1:height(T)-1
-        if T.Layer(i) == "WPT" && T.Layer(i+1) == "Surface"
-            rowDiff = T(i+1, :);
-            rowDiff{:, varsToSubtract} = T{i+1, varsToSubtract} - T{i, varsToSubtract};
-            rowDiff.distance = deg2km(distance(T{i+1, 'lat'}, T{i+1, 'lon'}, T{i, 'lat'}, T{i, 'lon'}));
-            rowDiff.Layer = "SurfaceMinusWPT";
-            diffRows = [diffRows; rowDiff]; %#ok<AGROW> 
+    % Get WPT and Surface indices
+    iWPT = find(T.Layer == "WPT");
+    iSurf = find(T.Layer == "Surface");
+
+    for k = 1:length(iWPT)
+        i = iWPT(k);
+        rowWPT = T(i, :);
+
+        % Try immediate next row
+        if i < height(T) && T.Layer(i+1) == "Surface"
+            j = i + 1;
+
+        else
+            % Search for closest Surface within 20 min after WPT
+            surfAfter = iSurf(iSurf > i);
+            if isempty(surfAfter)
+                continue;
+            end
+
+            timeDiffs = T.unixTimestamp(surfAfter) - T.unixTimestamp(i);
+            [minDt, relIdx] = min(abs(timeDiffs));
+
+            if minDt > 1200  % more than 20 minutes
+                continue;
+            end
+
+            j = surfAfter(relIdx);  % matched Surface row index
         end
+
+        % Compute difference: Surface - WPT
+        rowSurf = T(j, :);
+        rowDiff = rowSurf;
+        rowDiff{:, varsToSubtract} = rowSurf{:, varsToSubtract} - rowWPT{:, varsToSubtract};
+        rowDiff.distance = deg2km(distance(rowSurf.lat, rowSurf.lon, rowWPT.lat, rowWPT.lon));
+        rowDiff.Layer = "SurfaceMinusWPT";
+
+        diffRows = [diffRows; rowDiff]; 
     end
 
     if isempty(diffRows)
@@ -148,13 +225,15 @@ function results = compareWPTtoSurface(T, gliderID)
         return;
     end
 
+    % Rename date to surfTime
     diffRows = renamevars(diffRows, "date", "surfTime");
 
+    % Final output table
     results = table();
-    results.gliderSN = repmat(gliderID, height(diffRows), 1);
-    results.surfTime = diffRows.surfTime;
-    results.latDiff = diffRows.lat;
-    results.lonDiff = diffRows.lon;
-    results.timeDiffMin = diffRows.unixTimestamp ./ 60;
-    results.distance_km = diffRows.distance;
+    results.gliderSN     = repmat(gliderID, height(diffRows), 1);
+    results.surfTime     = diffRows.surfTime;
+    results.latDiff      = diffRows.lat;
+    results.lonDiff      = diffRows.lon;
+    results.timeDiffMin  = diffRows.unixTimestamp ./ 60;
+    results.distance_km  = diffRows.distance;
 end
