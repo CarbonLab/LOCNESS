@@ -24,7 +24,7 @@ if t.eng.command.ndive(end) == t.gps.ndive.diveend(d(end))
     allCmds = t.eng.command.commands(e) ;
     diveCmds = startsWith(allCmds, '8');  % logical index
     newMaxDepth = str2double(extractBetween(allCmds(diveCmds),3,5));
-    
+
     % imperfect, but scale dx and dy appropriately
     sf = newMaxDepth./previousDiveDepth; % sanity check - if new depth > last depth, glider will travel farther - scaling factor > 1
     dy = dy .* sf ;
@@ -40,7 +40,7 @@ end
     
     % if it is within ~6x depth from WP, then take waypoint from master list
     if(distwp1<radiusThreshold)
-        allWpts = t.eng.wpt.list(2).pts;        
+        allWpts = t.eng.wpt.list(end).pts;        
         idx = find(ismember(allWpts, swp, 'rows'));
         
         % assume its going to the next waypoint
@@ -110,7 +110,9 @@ end
         % ++++ may break here if index moves +++++
         d = ~isempty(t.eng.wpt.index);
         nonempty_idx = find(~cellfun('isempty', t.eng.wpt.index));
-        allWpts = [t.eng.wpt.lat(nonempty_idx) t.eng.wpt.lon(nonempty_idx)]; 
+        possWpts.lat = t.eng.wpt.lat(nonempty_idx); 
+        possWpts.lon = t.eng.wpt.lon(nonempty_idx);
+        allWpts = [possWpts.lat(end) possWpts.lon(end)]; 
         allWpts = [allWpts{:}];
 
         idx = find(ismember(allWpts, swp, 'rows'));
