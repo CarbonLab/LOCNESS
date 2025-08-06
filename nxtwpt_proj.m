@@ -19,7 +19,7 @@ dy = t.gps.lat.diveend(end) - t.gps.lat.divestart(end) ;
 % catch change in dive depth
 d = find(~isnan(t.gps.ndive.diveend)) ;
 if t.eng.command.ndive(end) == t.gps.ndive.diveend(d(end))
-    e = t.eng.command.ndive == t.gps.ndive.diveend(d(45));
+    e = t.eng.command.ndive == t.gps.ndive.diveend(d(end));
 % find command that changes max depth
     allCmds = t.eng.command.commands(e) ;
     diveCmds = startsWith(allCmds, '8');  % logical index
