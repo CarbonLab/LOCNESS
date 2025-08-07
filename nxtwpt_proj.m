@@ -56,7 +56,7 @@ end
         idx = find(ismember(allWpts, swp, 'rows'));
         
         % assume its going to the next waypoint
-            if ~isempty(idx) && idx < size(allWpts,1)
+            if ~isempty(idx) && (idx+1) <= size(allWpts,1)
                 newWpt = allWpts(idx + 1, :);
                 
                 % save new waypoint
@@ -68,10 +68,13 @@ end
                 disp('Target waypoint not found.');
                 lat_waypoint = NaN ;
                 lon_waypoint = NaN ;
-            else
-                disp('Target is the last waypoint — no next waypoint.');
-                lat_waypoint = NaN ;
-                lon_waypoint = NaN ;
+            elseif (idx+1) > size(allWpts,1)
+                disp('Target is the last waypoint — back to first waypoint.');
+                newWpt = allWpts(2, :);
+                
+                % save new waypoint
+                lat_waypoint = newWpt(1) ;
+                lon_waypoint = newWpt(2) ;
             end
 
         % project original distance over ground in direction of new
@@ -148,7 +151,7 @@ end
         idx = find(ismember(allWpts, swp, 'rows'));
         
         % assume its going to the next waypoint
-            if ~isempty(idx) && idx < size(allWpts,1)
+            if ~isempty(idx) && (idx+1) <= size(allWpts,1)
                 newWpt = allWpts(idx + 1, :);
                 lat_waypoint = newWpt(1) ;
                 lon_waypoint = newWpt(2) ;
@@ -158,10 +161,13 @@ end
                 disp('Target waypoint not found.');
                 lat_waypoint = NaN ;
                 lon_waypoint = NaN ;
-            else
-                disp('Target is the last waypoint — no next waypoint.');
-                lat_waypoint = NaN ;
-                lon_waypoint = NaN ;
+            elseif (idx+1) > size(allWpts,1)
+                disp('Target is the last waypoint — back to first waypoint.');
+                newWpt = allWpts(2, :);
+                
+                % save new waypoint
+                lat_waypoint = newWpt(1) ;
+                lon_waypoint = newWpt(2) ;
             end
 
         % project original distance over ground in direction of new
