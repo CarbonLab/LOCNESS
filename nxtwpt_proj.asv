@@ -58,17 +58,12 @@ end
                 newWpt = allWpts(idx + 1, :);
                 
                 % save new waypoint
-                lat_waypoint = newWpt(1) ;
-                lon_waypoint = newWpt(2) ;
-
+                lat_waypoint =
+                lon_waypoint
             elseif isempty(idx)
                 disp('Target waypoint not found.');
-                lat_waypoint = NaN ;
-                lon_waypoint = NaN ;
             else
                 disp('Target is the last waypoint — no next waypoint.');
-                lat_waypoint = NaN ;
-                lon_waypoint = NaN ;
             end
 
         % project original distance over ground in direction of new
@@ -146,16 +141,10 @@ end
         % assume its going to the next waypoint
             if ~isempty(idx) && idx < size(allWpts,1)
                 newWpt = allWpts(idx + 1, :);
-                lat_waypoint = newWpt(1) ;
-                lon_waypoint = newWpt(2) ;
             elseif isempty(idx)
                 disp('Target waypoint not found.');
-                lat_waypoint = NaN ;
-                lon_waypoint = NaN ;
             else
                 disp('Target is the last waypoint — no next waypoint.');
-                lat_waypoint = NaN ;
-                lon_waypoint = NaN ;
             end
 
         % project original distance over ground in direction of new
