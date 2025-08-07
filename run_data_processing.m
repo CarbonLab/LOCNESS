@@ -110,8 +110,7 @@ try % Add a check
 catch
     disp('Failed to run write ODSS'); % add an email with error code
 end
-%% Append csv with wpt data
-%% Evaluate how good the projections are
+%% Evaluate how good the projection is
 try
     run C:\Users\spraydata\Documents\GitHub\LOCNESS\evalProjection.m;
 catch
