@@ -34,6 +34,7 @@ if sum(e) >= 1
     hasNewDive = ~isempty(diveCmds);
         if hasNewDive == 1
             newMaxDepth = str2double(extractBetween(diveCmds, 3, 5));
+            newMaxDepth = newMaxDepth(end);
 
             % imperfect, but scale dx and dy appropriately
             sf = newMaxDepth./previousDiveDepth; % sanity check - if new depth > last depth, glider will travel farther - scaling factor > 1
@@ -121,6 +122,7 @@ if newCmd == 1
     hasNewDive = ~isempty(diveCmds);
         if hasNewDive == 1
             newMaxDepth = str2double(extractBetween(diveCmds, 3, 5));
+            newMaxDepth = newMaxDepth(end);
 
             % imperfect, but scale dx and dy appropriately
             sf = newMaxDepth./previousDiveDepth; % sanity check - if new depth > last depth, glider will travel farther - scaling factor > 1
