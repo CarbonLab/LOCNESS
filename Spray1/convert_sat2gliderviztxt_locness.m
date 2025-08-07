@@ -127,11 +127,11 @@ end
 if isfield(s, 'psal_QC')
     flt.SAL_FLAG = s.psal_QC;
 end
-if isfield(s, 'pdens')
-    flt.SIGMA_THETA = s.pdens;
+if isfield(s, 'sigma')
+    flt.SIGMA_THETA = s.sigma;
 end
-if isfield(s, 'pdens_QC')
-    flt.SIGMA_THETA_FLAG = s.pdens_QC;
+if isfield(s, 'sigma_QC')
+    flt.SIGMA_THETA_FLAG = s.sigma_QC;
 end
 if isfield(s, 'depth')
     flt.DEPTH = s.depth;

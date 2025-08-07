@@ -3,7 +3,7 @@ classdef ShipDataHandler < handle
         rclonePath = 'C:\Users\spraydata\rclone\rclone.exe';
         remoteFile = 'remote:7day-sensor-data_resampled.csv';
 %         remoteFile = 'remote:fake-data-all.parquet';
-        remoteFile_parquet = 'remote:7day-sensor-data_resampled.parquet'; % Need the new filename
+        remoteFile_parquet = 'remote:synthetic_data\lochness.parquet'; % Need the new filename
         localFolder_parquet = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\RVConnecticut';
         localFolder = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness';
         glidervizFolder = '\\sirocco\wwwroot\lobo\data\glidervizdata\';
