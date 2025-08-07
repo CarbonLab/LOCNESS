@@ -13,6 +13,9 @@ opts.ExtraColumnsRule = "ignore";
 opts.EmptyLineRule = "read";
 opts = setvaropts(opts, "Cruise", "WhitespaceRule", "preserve");
 opts = setvaropts(opts, ["Cruise", "Platform", "Layer", "CastDirection"], "EmptyFieldRule", "auto");
+% for mac
+% filepath = '/Volumes/ProjectLibrary/901805_Coastal_Biogeochemical_Sensing/Locness/Data/'
+
 filepath = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\';
 data = readtable([filepath 'LocnessMapProduct.txt'], opts);
 clear opts
