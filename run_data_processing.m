@@ -64,7 +64,7 @@ if processLRAUVData == 1
         disp('Failed to process new LRAUV data');
     end
 end
-%% Process LRAUV data and append local map product 
+%% Process Drifter data and append local map product 
 % Might have the wrong "Cruise" for the drifters? All of the values are
 % unique
 processDrifterData = 0;
@@ -111,6 +111,7 @@ catch
     disp('Failed to run write ODSS'); % add an email with error code
 end
 %% Append csv with wpt data
+%% Evaluate how good the projections are
 try
     run C:\Users\spraydata\Documents\GitHub\LOCNESS\evalProjection.m;
 catch
