@@ -27,6 +27,7 @@ e = t.eng.command.ndive == t.gps.ndive.diveend(d(end));
 if sum(e) >= 1
 % find command that changes max depth
     allCmds = t.eng.command.commands(e) ;
+    allCmds = {[allCmds{1} allCmds{2}]} ;
     parts = split(allCmds, ';');
     idx = startsWith(strtrim(parts), '8');
     diveCmds = parts(idx);
