@@ -1,6 +1,6 @@
 clear all; close all;
 %% Controls:
-forceprocess = 1;
+forceprocess = 0;
 sendemails = 1;
 dbg = 1;
 %%
@@ -102,7 +102,17 @@ for i = 1:length(matvars)
     s.([matvars{i},'_QC']) = zeros(size(s.tc));
 end
 %% Back fill all the previous proj data
-
+% proj_fname = fullfile('\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing','Locness','Data','GliderProjectionResults',[char(SNID),'_projections.csv']);
+% T = readtable(proj_fname);
+% idx = T.lat == s.lat_(2,:)' & T.lon == s.lon_(2,:)';
+% s.nxtlat_proj(idx) = 
+% 
+% 
+% s.nxtlat_proj = nan(size(s.lat));
+% s.nxtlon_proj = nan(size(s.lon));
+% s.nxtsurface_proj = nan(size(s.sdn));
+% s.nxtwptlat = nan(size(s.lat));
+% s.nxtwptlon = nan(size(s.lon));
 %% Calculate next surfacing time and location (_proj)
 try
     [s.nxtlat_proj(end), s.nxtlon_proj(end), s.nxtwptlat(end), s.nxtwptlon(end)] = nxtwpt_proj(t,1); % 1 for spray 1
@@ -142,8 +152,7 @@ try
         'nxtwptlat', 'nxtwptlon' ...
     } ...
 );
-    proj_fname = fullfile('\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing','Locness','Data','GliderProjectionResults',[char(SNID),'_projections.csv']);
-    writetable(projection_tbl,proj_fname,"WriteMode","append");
+        writetable(projection_tbl,proj_fname,"WriteMode","append");
 catch
     WriteLog(dbg,logfile,'Could not write projection table')
     disp('didnt work')
@@ -159,8 +168,8 @@ if sendemails == 1 % Don't send ODSS if testing
     end
     if ~isnan(s.sdn(end)) && ~isnan(s.nxtlon_proj(end)) && ~isnan(s.nxtlat_proj(end))
         % Update last location to ODSS
-%         update_ODSS_pos('SN069_nxtwpt',s.nxtsurface_proj(end),s.nxtlon_proj(end),s.nxtlat_proj(end)); % projected position
-        update_ODSS_pos('SN069_nxtwpt',s.sdn(end),s.nxtlon_proj(end),s.nxtlat_proj(end)); % projected position
+%         update_ODSS_pos('SN069_proj',s.nxtsurface_proj(end),s.nxtlon_proj(end),s.nxtlat_proj(end)); % projected position
+      update_ODSS_pos('SN069_proj',s.sdn(end),s.nxtlon_proj(end),s.nxtlat_proj(end)); % projected position
         WriteLog(dbg, logfile, 'update odss projected successful')
     elseif isnan(s.nxtsurface_proj(end)) && isnan(s.nxtlon_proj(end)) && isnan(s.nxtlat_proj(end))
         WriteLog(dbg, logfile, 'update odss not successful - missing projected location data');
