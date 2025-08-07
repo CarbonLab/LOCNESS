@@ -1,6 +1,6 @@
 clear all; close all;
 %% Controls:
-forceprocess = 0;
+forceprocess = 1;
 sendemails = 1;
 dbg = 1;
 %%
@@ -59,6 +59,9 @@ fname_t_struct = fullfile(missionpath,'t_struct.mat');
 save(fname_t_struct,'t');
 WriteLog(dbg, logfile, 'New data processed to mat file')
 %% Make it fit our gliderviz standard format
+fname_t_struct = fullfile(missionpath,'t_struct.mat');
+save(fname_t_struct,'t');
+% Make it fit our gliderviz standard format
 s.sdn = bindata.time' / 86400 + datenum(1970,1,1); % back to matlab sdn
 s.sdn_ = bindata.time_' / 86400 + datenum(1970,1,1); % back to matlab sdn
 s.lat = bindata.lat';
