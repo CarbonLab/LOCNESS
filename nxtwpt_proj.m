@@ -39,6 +39,7 @@ if sum(e) >= 1
             sf = newMaxDepth./previousDiveDepth; % sanity check - if new depth > last depth, glider will travel farther - scaling factor > 1
             dy = dy .* sf ;
             dx = dx .* sf ;
+        disp('new dive depth - scaled')
         end
 end
 
@@ -61,6 +62,7 @@ end
                 % save new waypoint
                 lat_waypoint = newWpt(1) ;
                 lon_waypoint = newWpt(2) ;
+                disp('Nearing waypoint - new waypoint found.');
 
             elseif isempty(idx)
                 disp('Target waypoint not found.');
@@ -121,6 +123,7 @@ if newCmd == 1
             sf = newMaxDepth./previousDiveDepth; % sanity check - if new depth > last depth, glider will travel farther - scaling factor > 1
             dy = dy .* sf ;
             dx = dx .* sf ;
+        disp('new dive depth - scaled')
         end
 end
 
@@ -149,6 +152,8 @@ end
                 newWpt = allWpts(idx + 1, :);
                 lat_waypoint = newWpt(1) ;
                 lon_waypoint = newWpt(2) ;
+                disp('Nearing waypoint - new waypoint found.');
+
             elseif isempty(idx)
                 disp('Target waypoint not found.');
                 lat_waypoint = NaN ;
