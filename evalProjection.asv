@@ -2,8 +2,8 @@
 % saves a CSV into the OBS lab's Locness/Data directory
 
 % Import data
-%filepath = '/Volumes/ProjectLibrary/901805_Coastal_Biogeochemical_Sensing/Locness/Data/GliderProjectionResults/';
-filepath = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\GliderProjectionResults\';
+filepath = '/Volumes/ProjectLibrary/901805_Coastal_Biogeochemical_Sensing/Locness/Data/GliderProjectionResults/';
+%filepath = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\GliderProjectionResults\';
 
 % Find all *_projections.csv files in the directory
 files = dir(fullfile(filepath, '*_projections.csv'));
@@ -65,18 +65,18 @@ for i = 1:length(gliderIDs)
 end
 
 % Save combined results
-writetable(allResults, [filepath '\all_gliders_diffs.csv']);
+%writetable(allResults, [filepath '\all_gliders_diffs.csv']);
 
 % for mac
-% writetable(allResults, [filepath '/all_gliders_diffs.csv']);
+writetable(allResults, [filepath '/all_gliders_diffs.csv']);
 
 %% make figures and save
 % mask results before August 4th when significant improvements were made
 d = results209.surfTime > datetime('04-Aug-2025 22:00:00');
 e = results069.surfTime > datetime('04-Aug-2025 22:00:00');
 
-%figure(43); clf
-figure('Visible','off');
+figure(43); clf
+%figure('Visible','off');
 set(gcf, 'Position', [1     1   960   635])
 sgtitle('Projected Surfacing Results')
 subplot 211
@@ -108,13 +108,13 @@ grid on
 legend('SN069','SN209')
 %ylim([-10 1000])
 
-saveas(gcf,[filepath '\projResults.png']);
+% saveas(gcf,[filepath '\projResults.png']);
 % for mac
-% saveas(gcf,[filepath '/projResults.png']);
+%saveas(gcf,[filepath '/projResults.png']);
 
 %% plot as histogram
-%figure(44); clf
-figure('Visible','off');
+figure(44); clf
+%figure('Visible','off');
 set(gcf, 'Position', [1     1   960   635])
 sgtitle('Projected Surfacing Results')
 subplot 211
@@ -142,14 +142,14 @@ txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m',...
     1000.*nanmean(results069.distance_km(e)),char(177),1000.*nanstd(results069.distance_km(e)),...
     1000.*nanmean(results209.distance_km(d)),char(177),1000.*nanstd(results209.distance_km(d)));
 
-text(450, 5,txt);
+text(450, 25,txt);
 
 set(gca,'FontSize',14)
 grid on
 legend('SN069','SN209')
 %ylim([0 8])
 
-saveas(gcf,[filepath '/projResults_hist.png']);
+% saveas(gcf,[filepath '/projResults_hist.png']);
 % for mac
 % saveas(gcf,[filepath '/projResults_hist.png']);
 
