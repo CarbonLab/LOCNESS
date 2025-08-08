@@ -1,9 +1,7 @@
 classdef ShipDataHandler < handle
     properties (Constant)
         rclonePath = 'C:\Users\spraydata\rclone\rclone.exe';
-        remoteFile = 'remote:7day-sensor-data_resampled.csv';
-%         remoteFile = 'remote:fake-data-all.parquet';
-        remoteFile_parquet = 'remote:synthetic_data\lochness.parquet'; % Need the new filename
+        remoteFile_parquet = 'remote:/synthetic_data/locness.parquet';
         localFolder_parquet = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\RVConnecticut';
         localFolder = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness';
         glidervizFolder = '\\sirocco\wwwroot\lobo\data\glidervizdata\';
@@ -13,13 +11,14 @@ classdef ShipDataHandler < handle
                     'unixTimestamp', 'lat', 'lon', 'temperature',...
                     'salinity', 'pHin', 'pH25atm', 'rhodamine', 'MLD', ...
                 };
-        shipDataVars = {'timestamp', 'lat', 'lon', 'rhodamine', 'ph', 'temp', 'salinity', 'ph_ma'};
+        shipDataVars = {'datetime_utc','id','latitude','longitude','rho_ppb','ph_total','ph_corrected', 'temp','salinity'}
     end
     properties (Access = private)
         TT  % The resampled timetable
     end
     properties (Access = public)
         currentPosition
+        T_resample
     end
 
     methods
@@ -40,8 +39,10 @@ classdef ShipDataHandler < handle
 
         function resampleData(obj, n)
             % RESAMPLEDATA - Resample CSV data to n-minute interval and save
+%             pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
+%                 true,"OutputType","table","SelectedVariableNames",obj.shipDataVars);
             pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
-                true,"OutputType","table","SelectedVariableNames",obj.shipDataVars);
+                true,"OutputType","table");
             T = pds.readall;
             if ~isdatetime(T.timestamp)
                 T.Time = datetime(T.timestamp, 'InputFormat', ...
@@ -53,6 +54,7 @@ classdef ShipDataHandler < handle
             tempTT = table2timetable(T, 'RowTimes', 'Time');
             obj.TT = retime(tempTT, 'regular', 'lastvalue', 'TimeStep', ...
                 minutes(n)); % Resample
+            obj.T_resample = T;
         end
 
         function copyToGliderviz(obj, filePath)

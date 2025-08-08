@@ -10,7 +10,7 @@ if processShipData == 1
     tic
     handler = ShipDataHandler();
     if handler.downloadData()
-        handler.resampleData(10);         % 10
+        handler.resampleData(5);         % 10
         handler.appendMapProduct(); % waiting for real data
     else
         warning("Download failed. Skipping resample.");
@@ -45,6 +45,11 @@ try
     handler = GliderDataHandler();
     handler.processGliderData('25720901');
     handler.processGliderData('25706901');
+    try % temp waiting for glider deployment
+        handler.processGliderData('25821001');
+    catch
+        disp('no data yet')
+    end
     gliderdownload = toc;
 catch
     disp('Failed to process glider map product')
