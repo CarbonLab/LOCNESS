@@ -74,6 +74,7 @@ writetable(allResults, [filepath '\all_gliders_diffs.csv']);
 % mask results before August 4th when significant improvements were made
 d = results209.surfTime > datetime('04-Aug-2025 22:00:00');
 e = results069.surfTime > datetime('04-Aug-2025 22:00:00');
+f = results210.surfTime > datetime('10-Aug-2025 17:30:00');
 
 %figure(43); clf
 figure('Visible','off');
@@ -83,32 +84,36 @@ subplot 211
 plot(results069.surfTime(e), results069.timeDiffMin(e),'.','MarkerSize',20)
 hold on; grid on
 plot(results209.surfTime(d), results209.timeDiffMin(d),'^','LineWidth',2)
+plot(results210.surfTime(f), results210.timeDiffMin(f),'p','LineWidth',2)
 ylabel('real - proj. time (min)');
 %ylim([-1 40])
 set(gca,'FontSize',14)
-txt = sprintf('SN069_{mean}: %.f%c%.f min\nSN209_{mean}: %.f%c%.f min',...
+txt = sprintf('SN069_{mean}: %.f%c%.f min\nSN209_{mean}: %.f%c%.f min\nSN210_{mean}: %.f%c%.f min',...
     nanmean(results069.timeDiffMin(e)),char(177),nanstd(results069.timeDiffMin(e)),...
-    nanmean(results209.timeDiffMin(d)),char(177),nanstd(results209.timeDiffMin(d)));
-text(datetime('04-Aug-2025 22:00:00'), -13,txt);
-legend('SN069','SN209');
+    nanmean(results209.timeDiffMin(d)),char(177),nanstd(results209.timeDiffMin(d)),...
+    nanmean(results210.timeDiffMin(f)),char(177),nanstd(results210.timeDiffMin(f)));
+text(datetime('8-Aug-2025 00:00:00'), -100,txt);
+legend('SN069','SN209','SN210');
 
 subplot 212
 plot(results069.surfTime(e), 1000.*results069.distance_km(e),'.','MarkerSize',20)
 hold on; 
 plot(results209.surfTime(d), 1000.*results209.distance_km(d),'^','LineWidth',2)
+plot(results210.surfTime(f), 1000.*results210.distance_km(f),'p','LineWidth',2)
 ylabel('distance (m)')
-txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m',...
+txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m\nSN210_{mean}: %.f%c%.f m',...
     1000.*nanmean(results069.distance_km(e)),char(177),1000.*nanstd(results069.distance_km(e)),...
-    1000.*nanmean(results209.distance_km(d)),char(177),1000.*nanstd(results209.distance_km(d)));
+    1000.*nanmean(results209.distance_km(d)),char(177),1000.*nanstd(results209.distance_km(d)),...
+    1000.*nanmean(results210.distance_km(f)),char(177),1000.*nanstd(results210.distance_km(f)));
 
-text(datetime('04-Aug-2025 15:00:00'), 500,txt);
+text(datetime('04-Aug-2025 15:00:00'), 1500,txt);
 
 set(gca,'FontSize',12)
 grid on
-legend('SN069','SN209')
+legend('SN069','SN209','SN210')
 %ylim([-10 1000])
 
-saveas(gcf,[filepath '\projResults.png']);
+%saveas(gcf,[filepath '\projResults.png']);
 % for mac
 % saveas(gcf,[filepath '/projResults.png']);
 
@@ -121,32 +126,36 @@ subplot 211
 histogram(results069.timeDiffMin(e),10)
 hold on; grid on
 histogram(results209.timeDiffMin(d),10)
+histogram(results210.timeDiffMin(f),10)
 
 xlabel('real - proj. time (min)')
 %ylim([0 13])
 set(gca,'FontSize',12)
-txt = sprintf('SN069_{mean}: %.f%c%.f min\nSN209_{mean}: %.f%c%.f min',...
+txt = sprintf('SN069_{mean}: %.f%c%.f min\nSN209_{mean}: %.f%c%.f min\nSN210_{mean}: %.f%c%.f min',...
     nanmean(results069.timeDiffMin(e)),char(177),nanstd(results069.timeDiffMin(e)),...
-    nanmean(results209.timeDiffMin(d)),char(177),nanstd(results209.timeDiffMin(d)));
-text(-13, 10, txt);
+    nanmean(results209.timeDiffMin(d)),char(177),nanstd(results209.timeDiffMin(d)),...
+    nanmean(results210.timeDiffMin(f)),char(177),nanstd(results210.timeDiffMin(f)));
+text(20, 40, txt);
 
-legend('SN069','SN209','Location','NW')
+legend('SN069','SN209','SN210','Location','NW')
 
 subplot 212
 histogram(1000.*results069.distance_km(e),15)
 hold on; 
 histogram(1000.*results209.distance_km(d),15)
+histogram(1000.*results210.distance_km(f),15)
 xlabel('distance (m)')
 
-txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m',...
+txt = sprintf('SN069_{mean}: %.f%c%.f m\nSN209_{mean}: %.f%c%.f m\nSN210_{mean}: %.f%c%.f m',...
     1000.*nanmean(results069.distance_km(e)),char(177),1000.*nanstd(results069.distance_km(e)),...
-    1000.*nanmean(results209.distance_km(d)),char(177),1000.*nanstd(results209.distance_km(d)));
+    1000.*nanmean(results209.distance_km(d)),char(177),1000.*nanstd(results209.distance_km(d)),...
+    1000.*nanmean(results210.distance_km(f)),char(177),1000.*nanstd(results210.distance_km(f)));
 
-text(450, 5,txt);
+text(750, 35,txt);
 
 set(gca,'FontSize',14)
 grid on
-legend('SN069','SN209')
+legend('SN069','SN209','SN210')
 %ylim([0 8])
 
 saveas(gcf,[filepath '/projResults_hist.png']);
