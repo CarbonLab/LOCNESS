@@ -113,7 +113,7 @@ grid on
 legend('SN069','SN209','SN210')
 %ylim([-10 1000])
 
-%saveas(gcf,[filepath '\projResults.png']);
+saveas(gcf,[filepath '\projResults.png']);
 % for mac
 % saveas(gcf,[filepath '/projResults.png']);
 

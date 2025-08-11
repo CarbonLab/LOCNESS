@@ -11,7 +11,7 @@ opts = setvaropts(opts, ["platform_battery_charge", "platform_average_current", 
 opts = setvaropts(opts, ["platform_battery_charge", "platform_average_current", "height_above_sea_floor", "fix_residual_percent_distance_traveled", "WetLabsBB2FL_Output650", "BPC1_reserve_battery_charge", "platform_battery_voltage"], "EmptyFieldRule", "auto");
 
 % +++ CHANGE DIRECTORY +++ %%%
-T = readtable("/Users/straylor/Library/CloudStorage/GoogleDrive-straylor@mbari.org/Shared drives/locness/lrauv/polaris_merged.csv", opts);
+T = readtable('/Users/straylor/Library/CloudStorage/GoogleDrive-straylor@mbari.org/Shared drives/locness/lrauv/polaris_merged.csv', opts)
 clear opts
 %%
 T.datetime = datetime(T.EpochSeconds,'ConvertFrom','posixtime') ;
