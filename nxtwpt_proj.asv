@@ -154,7 +154,7 @@ end
         idx = find(ismember(allWpts, swp, 'rows'));
         
         % assume its going to the next waypoint
-            if ~isempty(idx) && (idx+1) <= 5 %size(allWpts,1) seem to only have 4 waypoints at a time
+            if ~isempty(idx) && (idx+1) <= 4 %size(allWpts,1) seem to only have 4 waypoints at a time
                 newWpt = allWpts(idx + 1, :);
                 lat_waypoint = newWpt(1) ;
                 lon_waypoint = newWpt(2) ;
@@ -164,7 +164,7 @@ end
                 disp('Target waypoint not found.');
                 lat_waypoint = NaN ;
                 lon_waypoint = NaN ;
-            elseif (idx+1) > 5 %size(allWpts,1)
+            elseif (idx+1) > size(allWpts,1)
                 disp('Target is the last waypoint — back to first waypoint.');
                 newWpt = allWpts(2, :);
                 

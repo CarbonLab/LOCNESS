@@ -76,8 +76,8 @@ d = results209.surfTime > datetime('04-Aug-2025 22:00:00');
 e = results069.surfTime > datetime('04-Aug-2025 22:00:00');
 f = results210.surfTime > datetime('10-Aug-2025 17:30:00');
 
-%figure(43); clf
-figure('Visible','off');
+figure(43); clf
+%figure('Visible','off');
 set(gcf, 'Position', [1     1   960   635])
 sgtitle('Projected Surfacing Results')
 subplot 211
