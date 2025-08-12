@@ -5,20 +5,17 @@ rmpath(genpath('C:\Users\spraydata\Documents\GitHub\MBARIWireWalker'));
 %% Controlls
 % Put controls here when that is integrated into classes
 %% Pull the latest shipboard data, resample, and write to map product
-processShipData = 0;
+processShipData = 1;
 if processShipData == 1
     tic
     handler = ShipDataHandler();
-    if handler.downloadData()
-        handler.resampleData(5);         % 10
-        handler.appendMapProduct(); % waiting for real data
-    else
-        warning("Download failed. Skipping resample.");
-    end
+    handler.querytable(0.5); % 0.5 hr
+    handler.resampleData(10); % 10 min
+    handler.appendMapProduct(); % append map product
     sdn = handler.currentPosition.unixTimestamp/ 86400 + datenum(1970,1,1);
     lat = handler.currentPosition.lat;
     lon = handler.currentPosition.lon;
-    update_ODSS_pos_ship('RV Connecticut', lon, lat);
+%     update_ODSS_pos_ship('RV Connecticut', sdn, lon, lat);
     shipdownload = toc;
 end
 %% Process Spray 2 data
@@ -45,7 +42,7 @@ try
     handler = GliderDataHandler();
     handler.processGliderData('25720901');
     handler.processGliderData('25706901');
-%     handler.processGliderData('25821001'); % something wrong with this
+    handler.processGliderData('25821001');
     gliderdownload = toc;
 catch
     disp('Failed to process glider map product')
@@ -113,13 +110,13 @@ catch
     disp('Failed to update particle tracks')
 end
 %% Convert map product to kml and push latest data to ODSS
-% try % Add a check
-%     tic;
-%     run C:\Users\spraydata\Documents\GitHub\LOCNESS\write_ODSS.m;
-%     updateODSS = toc;
-% catch
-%     disp('Failed to run write ODSS'); % add an email with error code
-% end
+try % Add a check
+    tic;
+    run C:\Users\spraydata\Documents\GitHub\LOCNESS\write_ODSS.m;
+    updateODSS = toc;
+catch
+    disp('Failed to run write ODSS'); % add an email with error code
+end
 %% Evaluate how good the projection is
 try
     run C:\Users\spraydata\Documents\GitHub\LOCNESS\evalProjection.m;
