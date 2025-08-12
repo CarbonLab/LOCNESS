@@ -15,7 +15,10 @@ if processShipData == 1
     sdn = handler.currentPosition.unixTimestamp/ 86400 + datenum(1970,1,1);
     lat = handler.currentPosition.lat;
     lon = handler.currentPosition.lon;
-%     update_ODSS_pos_ship('RV Connecticut', sdn, lon, lat);
+%     sdn = datenum(datetime(handler.currentPosition.unixTimestamp, ...
+%                        'ConvertFrom', 'posixtime', ...
+%                        'TimeZone', 'UTC'));
+%     update_ODSS_pos_ship('RV_Conn', sdn, lon, lat);
     shipdownload = toc;
 end
 %% Process Spray 2 data
