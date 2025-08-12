@@ -12,6 +12,7 @@ classdef ShipDataHandler < handle
                     'salinity', 'pHin', 'pH25atm', 'rhodamine', 'MLD', ...
                 };
         shipDataVars = {'datetime_utc','id','latitude','longitude','rho_ppb','ph_total','ph_corrected', 'temp','salinity'}
+        table_name = 'locness-underway-summary';
     end
     properties (Access = private)
         TT  % The resampled timetable
@@ -36,14 +37,32 @@ classdef ShipDataHandler < handle
                 downloadStatus = false;
             end
         end
+        
 
+        function data = querytable(obj)
+            % Single query for the day
+            end_time = datetime('now', 'Format', 'uuuu-MM-dd''T''HH:mm:ss''Z''', 'TimeZone', 'UTC');
+            start_time = end_time - hours(1);
+            key_condition = '"static_partition = :pk AND datetime_utc BETWEEN :start_dt AND :end_dt"';
+            attr_values = ['"{\":pk\":{\"S\":\"data\"},\":start_dt\":{\"S\":\"', char(start_time), '\"},\":end_dt\":{\"S\":\"', char(end_time), '\"}}"'];
+            limit = '1800';
+            region = 'us-east-1';
+            profile = 'RVCONNDB';
+            command = sprintf('aws dynamodb query --table-name %s --key-condition-expression %s --expression-attribute-values %s --limit %s --region %s --output json --profile %s', ...
+                obj.table_name, key_condition, attr_values, limit, region, profile);
+            [status, output] = system(command);
+            result = jsondecode(output);
+            % Use the function
+            data_table = dynamodb_to_table(result.Items);
+        end
         function resampleData(obj, n)
             % RESAMPLEDATA - Resample CSV data to n-minute interval and save
 %             pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
 %                 true,"OutputType","table","SelectedVariableNames",obj.shipDataVars);
-            pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
-                true,"OutputType","table");
-            T = pds.readall;
+%             pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
+%                 true,"OutputType","table");
+%             T = pds.readall;
+            
             if ~isdatetime(T.timestamp)
                 T.Time = datetime(T.timestamp, 'InputFormat', ...
                     'yyyy-MM-dd HH:mm:ss', "TimeZone", "UTC");

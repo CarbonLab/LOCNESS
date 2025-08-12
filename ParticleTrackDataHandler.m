@@ -1,38 +1,63 @@
 classdef ParticleTrackDataHandler < handle
     properties (Constant)
         rclonePath = 'C:\Users\spraydata\rclone\rclone.exe';
-        remoteFile = 'remote:particle_tracks/20250721_gomofs.zarr'; % Need the new filename
+        remoteFolder = 'remote:particle_tracks';
         localFolder = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\ParticleTracks';
-        localFile = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\ParticleTracks\20250721_gomofs.zarr';
+        file_gomofs = '20250811_Dispersal_gomofs.csv';
+        file_doppio = '20250811_Dispersal_doppio.csv';
         glidervizFolder = '\\sirocco\wwwroot\lobo\data\glidervizdata\';
-        mapProductFile = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\LocnessMapProduct.txt';
-        mapProductVars = { ...
-                    'Cruise', 'Platform', 'Layer', 'CastDirection', ...
-                    'unixTimestamp', 'lat', 'lon', 'temperature',...
-                    'salinity', 'pHin', 'pH25atm', 'rhodamine', 'MLD', ...
-                };
     end
-    properties (Access = private)
-        ReadOptions    % delimitedTextImportOptions for readtable
-    end
+    
     properties (Access = public)
-        T_raw % Output from readtable
-        T % Table to append to MapProduct
-        message
+        downloadStatus
     end
-
+    
     methods (Access = public)
+        
+        function obj = ParticleTrackDataHandler()
+            % Constructor (optional: could auto-run update here if desired)
+        end
+        
+        function downloadStatus = downloadAll(obj)
+            % DOWNLOADALL - Download both particle track files in one call
+            cmd = sprintf('"%s" copy "%s" "%s" --include "%s" --include "%s" --size-only', ...
+                obj.rclonePath, obj.remoteFolder, obj.localFolder, ...
+                obj.file_gomofs, obj.file_doppio);
+            
+            fprintf('Running rclone download...\n');
+            tic;
+            [status, cmdout] = system(cmd);
+            fprintf('Rclone output:\n%s\n', cmdout);
+            fprintf('Download took %.2f seconds\n', toc);
+            
+            obj.downloadStatus = (status == 0);
+            downloadStatus = obj.downloadStatus;
+        end
+        
+        function copyAllToGliderViz(obj)
+            % COPYALLTOGLIDERVIZ - Copy both local files to gliderviz folder as .txt
+            try
+                % Convert gomofs.csv -> gomofs.txt
+                dest_gomofs = fullfile(obj.glidervizFolder, strrep(obj.file_gomofs, '.csv', '.txt'));
+                copyfile(fullfile(obj.localFolder, obj.file_gomofs), dest_gomofs);
+                
+                % Convert doppio.csv -> doppio.txt
+                dest_doppio = fullfile(obj.glidervizFolder, strrep(obj.file_doppio, '.csv', '.txt'));
+                copyfile(fullfile(obj.localFolder, obj.file_doppio), dest_doppio);
+                
+                fprintf('Copied files to GliderViz as .txt successfully.\n');
+            catch ME
+                warning('Error copying files to GliderViz: %s', ME.message);
+            end
+        end
 
-        function downloadStatus = downloadData(obj)
-            % DOWNLOADDATA - Use rclone to copy data from remote to local.
-            command = sprintf('"%s" copy %s "%s" --checksum', ...
-                obj.rclonePath, obj.remoteFile, obj.localFolder);
-            [status, ~] = system(command);
-
-            if status == 0
-                downloadStatus = true;
+        
+        function updateAll(obj)
+            % UPDATEALL - Download and copy in one go
+            if obj.downloadAll()
+                obj.copyAllToGliderViz();
             else
-                downloadStatus = false;
+                warning('Download failed — skipping copy to GliderViz.');
             end
         end
     end

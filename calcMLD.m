@@ -78,7 +78,12 @@ s.tc_ts = [];
 s.pH25atm_ts = [];
 s.direction = [];
 
-for i = 1:dnms
+% if ismember(string(s.depID),'25821001')
+%     dstart = 9;
+% else
+%     dstart = 1;
+% end
+for i = dstart:dnms
     % separate dive and ascent profiles
     down = s.divedir(:,i) == -1 ;
     up = s.divedir(:,i) == 1 ;

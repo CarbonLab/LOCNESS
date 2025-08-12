@@ -45,13 +45,17 @@ try
     handler = GliderDataHandler();
     handler.processGliderData('25720901');
     handler.processGliderData('25706901');
-%     handler.processGliderData('25821001'); % something wrong with this
+    try % temp waiting for glider deployment
+        handler.processGliderData('25821001');
+    catch
+        disp('no data yet')
+    end
     gliderdownload = toc;
 catch
     disp('Failed to process glider map product')
 end
 %% Process LRAUV data and append local map product 
-processLRAUVData = 1;
+processLRAUVData = 0;
 if processLRAUVData == 1
     try
         tic;
@@ -107,19 +111,20 @@ end
 try
     tic
     handler = ParticleTrackDataHandler();
-    handler.updateAll();
+    handler.updateAll('gomofs');
+    handler.updateAll('doppio');
     ptracks = toc;
 catch
     disp('Failed to update particle tracks')
 end
 %% Convert map product to kml and push latest data to ODSS
-% try % Add a check
-%     tic;
-%     run C:\Users\spraydata\Documents\GitHub\LOCNESS\write_ODSS.m;
-%     updateODSS = toc;
-% catch
-%     disp('Failed to run write ODSS'); % add an email with error code
-% end
+try % Add a check
+    tic;
+    run C:\Users\spraydata\Documents\GitHub\LOCNESS\write_ODSS.m;
+    updateODSS = toc;
+catch
+    disp('Failed to run write ODSS'); % add an email with error code
+end
 %% Evaluate how good the projection is
 try
     run C:\Users\spraydata\Documents\GitHub\LOCNESS\evalProjection.m;
