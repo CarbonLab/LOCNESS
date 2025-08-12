@@ -8,7 +8,7 @@ function [lat_predict, lon_predict, lat_waypoint, lon_waypoint] = nxtwpt_proj(t,
 % predicted longitude
 
 if glider == 2
-previousDiveDepth = max(t.ctd.p{end}) ;
+previousDiveDepth = max(t.ctd.p{end-1}) ;
 radiusThreshold = 6 * previousDiveDepth./1000 ; % six times previous dive's depth - can update
 
 % find current waypoint
@@ -100,8 +100,8 @@ end
     end
 
 elseif glider == 1
-previousDiveDepth = max(t.depth{end});
-radiusThreshold = 6 * previousDiveDepth./1000; % six times previous dive's depth - can update
+previousDiveDepth = max(t.depth{end-1});
+radiusThreshold = 5 * previousDiveDepth./1000; % six times previous dive's depth - can update
 
 swp = [t.eng.en.wlat(end) t.eng.en.wlon(end)] ; % waypoint for last dive
 dx = t.lon(end,2) - t.lon(end,1) ;
