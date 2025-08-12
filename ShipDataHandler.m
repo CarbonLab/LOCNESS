@@ -20,13 +20,13 @@ classdef ShipDataHandler < handle
     properties (Access = public)
         currentPosition
         T_resample
+        dynamodb_status
+        tbl % Raw table
     end
 
     methods
         function downloadStatus = downloadData(obj)
             % DOWNLOADDATA - Use rclone to copy data from remote to local.
-%             command = sprintf('"%s" copy %s "%s"', ...
-%                 obj.rclonePath, obj.remoteFile, obj.localFolder);
             command = sprintf('"%s" copy %s "%s" --checksum', ...
                 obj.rclonePath, obj.remoteFile_parquet, obj.localFolder_parquet);
             [status, ~] = system(command);
@@ -37,44 +37,72 @@ classdef ShipDataHandler < handle
                 downloadStatus = false;
             end
         end
-        
 
-        function data = querytable(obj)
-            % Single query for the day
+        function querytable(obj, ntime, limit)
+            % Single query for current time - ntime hours
+            % Returns tbl: all data available at 0.5 Hz resolution
+            if nargin < 2
+                ntime = 1; % default 1 hour of data
+            end
+            if nargin < 3
+                limit = '2700'; % limit is 90 min, 1:30 of data
+            end
             end_time = datetime('now', 'Format', 'uuuu-MM-dd''T''HH:mm:ss''Z''', 'TimeZone', 'UTC');
-            start_time = end_time - hours(1);
+            start_time = end_time - hours(ntime);
             key_condition = '"static_partition = :pk AND datetime_utc BETWEEN :start_dt AND :end_dt"';
             attr_values = ['"{\":pk\":{\"S\":\"data\"},\":start_dt\":{\"S\":\"', char(start_time), '\"},\":end_dt\":{\"S\":\"', char(end_time), '\"}}"'];
-            limit = '1800';
+%             limit = '2700';
             region = 'us-east-1';
             profile = 'RVCONNDB';
             command = sprintf('aws dynamodb query --table-name %s --key-condition-expression %s --expression-attribute-values %s --limit %s --region %s --output json --profile %s', ...
                 obj.table_name, key_condition, attr_values, limit, region, profile);
-            [status, output] = system(command);
+            [obj.dynamodb_status, output] = system(command);
             result = jsondecode(output);
             % Use the function
-            data_table = dynamodb_to_table(result.Items);
+            obj.tbl = dynamodb_to_table(result.Items);
+            obj.tbl(end,:) = []; % Last table entry is usually 0 likely because mid upload
         end
+
         function resampleData(obj, n)
-            % RESAMPLEDATA - Resample CSV data to n-minute interval and save
-%             pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
-%                 true,"OutputType","table","SelectedVariableNames",obj.shipDataVars);
-%             pds = parquetDatastore(obj.localFolder_parquet,"IncludeSubfolders", ...
-%                 true,"OutputType","table");
-%             T = pds.readall;
-            
-            if ~isdatetime(T.timestamp)
-                T.Time = datetime(T.timestamp, 'InputFormat', ...
-                    'yyyy-MM-dd HH:mm:ss', "TimeZone", "UTC");
-            else
-                T.Time = T.timestamp;
+            % Faster resample by picking last row in each n-minute bin, aligned to :00,
+            % except last bin keeps original timestamp.
+        
+            T = obj.tbl;
+        
+            % Ensure datetime type
+            if ~isdatetime(T.datetime_utc)
+                T.datetime_utc = datetime(T.datetime_utc, ...
+                    'InputFormat', 'yyyy-MM-dd HH:mm:ss', ...
+                    'TimeZone', 'UTC');
             end
-            T = sortrows(T,'Time','ascend');
-            tempTT = table2timetable(T, 'RowTimes', 'Time');
-            obj.TT = retime(tempTT, 'regular', 'lastvalue', 'TimeStep', ...
-                minutes(n)); % Resample
-            obj.T_resample = T;
+        
+            % Sort if needed
+            if ~issorted(T.datetime_utc)
+                T = sortrows(T, 'datetime_utc');
+            end
+        
+            % Align bins to top-of-hour
+            startTime = dateshift(T.datetime_utc(1), 'start', 'hour');
+            minutesSinceStart = minutes(T.datetime_utc - startTime);
+            binIdx = floor(minutesSinceStart / n);
+        
+            % Bin start times for each row
+            binStartTimes = startTime + minutes(binIdx * n);
+        
+            % Identify last row in each bin
+            isLastInBin = [diff(binIdx) ~= 0; true];
+        
+            % Keep only last rows
+            T_resampled = T(isLastInBin, :);
+        
+            % Relabel timestamps for all but last bin
+            binEndTimes = binStartTimes(isLastInBin) + minutes(n);
+            T_resampled.datetime_utc(1:end-1) = binEndTimes(1:end-1);
+        
+            % Store
+            obj.T_resample = T_resampled;
         end
+
 
         function copyToGliderviz(obj, filePath)
             % COPYTOGLIDERVIZ - Copy file to the Gliderviz folder
@@ -82,8 +110,8 @@ classdef ShipDataHandler < handle
         end
         
         function appendMapProduct(obj)
-            TTlocal = obj.TT;
-            nRows = length(TTlocal.Time);
+            T_resample_local = obj.T_resample;
+            nRows = length(T_resample_local.datetime_utc);
            
             MapProduct = table( ...
                 strings(nRows,1), ...           % Cruise
@@ -104,15 +132,15 @@ classdef ShipDataHandler < handle
             MapProduct.Platform = repmat("Ship",nRows,1);
             MapProduct.Layer = repmat("MLD",nRows,1);
             MapProduct.CastDirection = repmat("Constant",nRows,1); % Always mean for ship data
-            MapProduct.unixTimestamp = posixtime(TTlocal.Time); % unix
-            MapProduct.lat = TTlocal.lat;
-            MapProduct.lon = TTlocal.lon;
-            MapProduct.temperature = TTlocal.temp;
-            MapProduct.salinity = TTlocal.salinity;
-            MapProduct.pHin = TTlocal.ph;
-            MapProduct.pH25atm = NaN(size(TTlocal.ph));
-            MapProduct.rhodamine = TTlocal.rhodamine;
-            MapProduct.MLD = NaN(size(TTlocal.ph));
+            MapProduct.unixTimestamp = posixtime(T_resample_local.datetime_utc); % unix
+            MapProduct.lat = T_resample_local.latitude;
+            MapProduct.lon = T_resample_local.longitude;
+            MapProduct.temperature = T_resample_local.temp;
+            MapProduct.salinity = T_resample_local.salinity;
+            MapProduct.pHin = T_resample_local.ph_total; % or corrected?
+            MapProduct.pH25atm = NaN(size(T_resample_local.ph_total));
+            MapProduct.rhodamine = T_resample_local.rho_ppb;
+            MapProduct.MLD = NaN(size(T_resample_local.ph_total));
             
             % read existing table and find unique rows to append
             if isfile(obj.mapProductFile)
