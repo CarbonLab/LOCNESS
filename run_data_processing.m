@@ -12,13 +12,13 @@ if processShipData == 1
     handler.querytable(0.5); % 0.5 hr
     handler.resampleData(10); % 10 min
     handler.appendMapProduct(); % append map product
-    sdn = handler.currentPosition.unixTimestamp/ 86400 + datenum(1970,1,1);
+%     sdn2 = handler.currentPosition.unixTimestamp/ 86400 + datenum(1970,1,1);
     lat = handler.currentPosition.lat;
     lon = handler.currentPosition.lon;
-%     sdn = datenum(datetime(handler.currentPosition.unixTimestamp, ...
-%                        'ConvertFrom', 'posixtime', ...
-%                        'TimeZone', 'UTC'));
-%     update_ODSS_pos_ship('RV_Conn', sdn, lon, lat);
+    sdn = datenum(datetime(handler.currentPosition.unixTimestamp, ...
+                       'ConvertFrom', 'posixtime', ...
+                       'TimeZone', 'UTC'));
+    update_ODSS_pos_ship('RV_Conn', sdn, lon, lat);
     shipdownload = toc;
 end
 %% Process Spray 2 data
