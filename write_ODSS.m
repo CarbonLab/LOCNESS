@@ -51,7 +51,7 @@ end
 
 % choose only mean MLD values
 % this only takes gliders, needs to be augmented to add drifters
-k = rest.Platform == 'Glider' & rest.Layer == 'MLD' & rest.CastDirection == 'Mean';
+k = rest.Platform == 'Glider' | rest.Platform == 'LRAUV' & rest.Layer == 'MLD' & rest.CastDirection == 'Up';
 rest = rest(k,:) ;
 
 data = table();
@@ -76,7 +76,7 @@ d = ~isnan(data.rhodamine) ;
 data = data(d,:) ;
 
 global rep_kml_global kml_global
-% rep_kml_global = '//Volumes/ODSS/data/mapserver/mapfiles/assets/' ;
+% rep_kml_global = '/Volumes/ODSS/data/mapserver/mapfiles/assets/' ;
 % rep_kml_global = '\\\\atlas\\ODSS\\data\\mapserver\\mapfiles\\assets\\';
 rep_kml_global = '\\atlas\ODSS\data\mapserver\mapfiles\assets\';  % only one backslash per segment
 
