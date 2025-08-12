@@ -100,6 +100,7 @@ else
     % Dive first
     % calculate MLD
         pressure_prof = s.pres(down,i); % extract pressure profile
+        pressure_prof = pressure_prof + (rand(size(pressure_prof))*1e-9);
         density_prof = s.pdens(down,i); % extract density profile
         depth_prof = s.depth(down,i); % extract depth profile
 
@@ -158,7 +159,8 @@ if sum(up) <= 1 || sum(~isnan(s.pdens(up,i))) <= 1
 else
     % Ascent
     % calculate MLD
-        pressure_prof = flipud(s.pres(up,i)); % extract pressure profile
+        pressure_prof = flipud(s.pres(up,i)) ; % extract pressure profile
+        pressure_prof = pressure_prof + (rand(size(pressure_prof))*1e-9);
         density_prof = flipud(s.pdens(up,i)); % extract density profile
         depth_prof = flipud(s.depth(up,i)); % extract depth profile
 
