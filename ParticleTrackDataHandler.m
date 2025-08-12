@@ -3,8 +3,8 @@ classdef ParticleTrackDataHandler < handle
         rclonePath = 'C:\Users\spraydata\rclone\rclone.exe';
         remoteFolder = 'remote:particle_tracks';
         localFolder = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\ParticleTracks';
-        file_gomofs = '20250811_Dispersal_gomofs.csv';
-        file_doppio = '20250811_Dispersal_doppio.csv';
+        file_gomofs = 'current_gomofs.csv';
+        file_doppio = 'current_doppio.csv';
         glidervizFolder = '\\sirocco\wwwroot\lobo\data\glidervizdata\';
     end
     

@@ -83,13 +83,14 @@ s.direction = [];
 % else
 %     dstart = 1;
 % end
+dstart = 1;
 for i = dstart:dnms
     % separate dive and ascent profiles
     down = s.divedir(:,i) == -1 ;
     up = s.divedir(:,i) == 1 ;
 
     % catch here if down is empty
-if sum(down) <= 1 | sum(~isnan(s.pdens(down,i))) <= 1
+if sum(down) <= 1 || sum(~isnan(s.pdens(down,i))) <= 1
         MLDd(i) = NaN;
         phd_mean = NaN;
         rd_mean = NaN;
