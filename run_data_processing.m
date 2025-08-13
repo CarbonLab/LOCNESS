@@ -7,19 +7,22 @@ rmpath(genpath('C:\Users\spraydata\Documents\GitHub\MBARIWireWalker'));
 %% Pull the latest shipboard data, resample, and write to map product
 processShipData = 1;
 if processShipData == 1
-    tic
-    handler = ShipDataHandler();
-    handler.querytable(0.5); % 0.5 hr
-    handler.resampleData(10); % 10 min
-    handler.appendMapProduct(); % append map product
-%     sdn2 = handler.currentPosition.unixTimestamp/ 86400 + datenum(1970,1,1);
-    lat = handler.currentPosition.lat;
-    lon = handler.currentPosition.lon;
-    sdn = datenum(datetime(handler.currentPosition.unixTimestamp, ...
-                       'ConvertFrom', 'posixtime', ...
-                       'TimeZone', 'UTC'));
-    update_ODSS_pos_ship('RV_Conn', sdn, lon, lat);
-    shipdownload = toc;
+    try
+        tic
+        handler = ShipDataHandler();
+        handler.querytable(0.2); % 0.2 hr ~10 min
+        handler.resampleData(5); % 5 min
+        handler.appendMapProduct(); % append map product
+%         lat = handler.currentPosition.lat;
+%         lon = handler.currentPosition.lon;
+%         sdn = datenum(datetime(handler.currentPosition.unixTimestamp, ...
+%                            'ConvertFrom', 'posixtime', ...
+%                            'TimeZone', 'UTC'));
+%         update_ODSS_pos_ship('RV_Conn', sdn, lon, lat);
+        shipdownload = toc;
+    catch
+        disp('failed to process ship data')
+    end
 end
 %% Process Spray 2 data
 ProcessSpray2Data = 1;
@@ -68,27 +71,33 @@ end
 %% Process Drifter data and append local map product 
 % Might have the wrong "Cruise" for the drifters? All of the values are
 % unique
-processDrifterData = 0;
+%id,timestamp,latitude,longitude,messageType
+processDrifterData = 1;
 if processDrifterData == 1
     try
         tic;
         handler = DrifterDataHandler();
         handler.downloadData();
-        handler.readCSV();
-        handler.buildTable();
-        handler.appendMapProduct(); 
-        processDrifterdata = toc;
-        Drifters = unique(handler.T.Cruise);
-        % Update ODSS for each unique drifter by looping through all
-        % drifters and getting the last known time and location for each.
-        for i = 1:Drifters
-            idx = ismember(handler.T.Cruise,Drifters(i));
-            t = handler.T(idx,:);
-            sdn = t.unixTimestamp(end)/ 86400 + datenum(1970,1,1);
-            lat = t.latitude(end);
-            lon = t.longitude(end);
-            update_ODSS_pos_drifter(Drifters(i),sdn,lon,lat);
+        fnames = dir('\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\Drifter\*.csv');
+        folder = {fnames.folder}.';
+        names = {fnames.name}.';
+        fnames = fullfile(folder,names);
+        drifternames = {'SPOT001','SPOT002','SPOT003','SPOT004','SPOT005',...
+            'SPOT006','SPOT007','SPOT008','SPOT009','SPOT010','SPOT011','SPOT012'};
+        for i = 1:length(fnames)
+            handler.readCSV(string(fnames(i)));
+            handler.buildTable();
+            handler.appendMapProduct(); 
+%             t = handler.T(end,:);
+%             sdn = datenum(datetime(t.unixTimestamp, ...
+%                'ConvertFrom', 'posixtime', ...
+%                'TimeZone', 'UTC'));
+%             lat = t.lat(end);
+%             lon = t.lon(end);
+%             update_ODSS_pos_drifter(char(drifternames(i)),sdn,lon,lat);
+            processDrifterdata = toc;
         end
+        processDrifterdata = toc;
     catch
         disp('Failed to process new Drifter data');
     end

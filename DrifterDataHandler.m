@@ -1,7 +1,7 @@
 classdef DrifterDataHandler < handle
     properties (Constant)
         rclonePath = 'C:\Users\spraydata\rclone\rclone.exe';
-        remoteFile = 'remote:spot/drifter_data.csv'; 
+        remoteFile = 'remote:spot/'; 
         localFolder = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\Drifter';
         localFile = '\\atlas.shore.mbari.org\ProjectLibrary\901805_Coastal_Biogeochemical_Sensing\Locness\Data\Drifter\drifter_data.csv';
         glidervizFolder = '\\sirocco\wwwroot\lobo\data\glidervizdata\';
@@ -19,6 +19,7 @@ classdef DrifterDataHandler < handle
         T_raw % Output from readtable
         T % Table to append to MapProduct
         message
+        cruise
     end
 
     methods (Access = public)
@@ -39,20 +40,26 @@ classdef DrifterDataHandler < handle
             end
         end
 
-        function readCSV(obj)
-            obj.T_raw = readtable(obj.localFile,obj.ReadOptions);
+        function readCSV(obj,fname)
+            obj.T_raw = readtable(fname,obj.ReadOptions);
+            obj.T_raw = sortrows(obj.T_raw,'timestamp');
+            obj.cruise = char(fname);
+            obj.T_raw.timestamp.TimeZone = 'America/New_York';
+            obj.T_raw.timestamp.TimeZone = 'UTC';
         end
 
-        function buildTable(obj)
+        function buildTable(obj,fname)
             if isempty(obj.T_raw)
-                obj.T_raw = readtable(obj.localFile,obj.ReadOptions);
+                obj.T_raw = readtable(fname,obj.ReadOptions);
             end
             t = obj.T_raw;
+            f = obj.cruise;
+            cruisename = f(end-13:end-4);
             nRows = length(t.timestamp);
             t.unixTimestamp = posixtime(t.timestamp);
             
             T_new = table( ...
-            t.id, ...
+            repmat(cruisename, nRows, 1), ...
             repmat("Drifter", nRows, 1), ...
             repmat("Surface", nRows, 1), ...
             repmat("Constant", nRows, 1), ...
@@ -94,7 +101,7 @@ classdef DrifterDataHandler < handle
             opts.DataLines = [2, Inf];
             opts.Delimiter = ",";
             
-            % Define variable names
+            % Define variable names: id,timestamp,latitude,longitude,messageType
             opts.VariableNames = ["id", "timestamp", "latitude", "longitude", "messageType"];
             
             % Select only the needed variable names
