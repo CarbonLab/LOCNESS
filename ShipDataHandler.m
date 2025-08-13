@@ -102,13 +102,54 @@ classdef ShipDataHandler < handle
             % Store
             obj.T_resample = T_resampled;
         end
-
+        
+        function GetCurrentData(obj)
+            obj.querytable(1/120);
+            obj.T_resample = obj.tbl(end,:);
+        end
 
         function copyToGliderviz(obj, filePath)
             % COPYTOGLIDERVIZ - Copy file to the Gliderviz folder
             copyfile(filePath, obj.glidervizFolder);
         end
         
+        function CurrentLocation(obj)
+        % Build table to update odss
+            T_resample_local = obj.T_resample;
+            nRows = length(T_resample_local.datetime_utc);
+           
+            MapProduct = table( ...
+                strings(nRows,1), ...           % Cruise
+                strings(nRows,1), ...           % Platform
+                strings(nRows,1), ...           % Layer
+                strings(nRows,1), ...           % Cast direction
+                NaN(nRows,1), ...               % unixTimestamp as datetime (or use double if raw Unix time)
+                NaN(nRows,1), ...               % lat
+                NaN(nRows,1), ...               % lon
+                NaN(nRows,1), ...               % temperature
+                NaN(nRows,1), ...               % salinity
+                NaN(nRows,1), ...               % pHin
+                NaN(nRows,1), ...               % pH25atm
+                NaN(nRows,1), ...               % rodamine
+                NaN(nRows,1), ...               % MLD
+                'VariableNames', obj.mapProductVars);
+            MapProduct.Cruise = repmat("RV Connecticut",nRows,1);
+            MapProduct.Platform = repmat("Ship",nRows,1);
+            MapProduct.Layer = repmat("MLD",nRows,1);
+            MapProduct.CastDirection = repmat("Constant",nRows,1); % Always mean for ship data
+            MapProduct.unixTimestamp = posixtime(T_resample_local.datetime_utc); % unix
+            MapProduct.lat = T_resample_local.latitude;
+            MapProduct.lon = T_resample_local.longitude;
+            MapProduct.temperature = T_resample_local.temp;
+            MapProduct.salinity = T_resample_local.salinity;
+            MapProduct.pHin = T_resample_local.ph_total; % or corrected?
+            MapProduct.pH25atm = NaN(size(T_resample_local.ph_total));
+            MapProduct.rhodamine = T_resample_local.rho_ppb;
+            MapProduct.MLD = NaN(size(T_resample_local.ph_total));
+
+            obj.currentPosition = MapProduct;
+        end
+
         function appendMapProduct(obj)
             T_resample_local = obj.T_resample;
             nRows = length(T_resample_local.datetime_utc);
