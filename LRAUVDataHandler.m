@@ -66,8 +66,8 @@ classdef LRAUVDataHandler < handle
             t.pH25atm = NaN(size(t.vrse)) ;
 
             % Parameters
-            depthMin = 2;
-            depthMax = 10;
+            depthMin = 0;
+            depthMax = 8;
             maxGapSec = 1800;  % 1 hour
             
             % Sort by datetime
