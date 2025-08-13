@@ -27,8 +27,8 @@ global rep_kml_global kml_global
     elseif strcmp(lower(varname),'ph') == 1
         cmocean('speed')
         c.Label.String = 'pH';
-        caxis([7.7 8.5]);
-        c.Ticks = [7.7:.1:8.5];
+        caxis([7.9 8.5]);
+        c.Ticks = [7.9:.1:8.5];
 
     elseif strcmp(lower(varname),'temperature') == 1
     

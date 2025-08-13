@@ -1,3 +1,6 @@
+% Main function with your current code
+function [] = manualDrifters()
+
 %% Define folder containing drifter CSVs
 dataFolder = "/Users/straylor/Library/CloudStorage/GoogleDrive-straylor@mbari.org/Shared drives/locness/spot/";
 
@@ -59,3 +62,5 @@ end
 
 %% Clear opts if not needed anymore
 clear opts
+end
+
