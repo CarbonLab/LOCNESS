@@ -33,7 +33,7 @@ if strcmp(lower(varname),'rhodamine') == 1
     tmax = max(data);
 
 elseif strcmp(lower(varname),'ph') == 1
-    colormapJet = cmocean('speed',64);
+    colormapJet = cmocean('phase',64);
     tmin = 7.9;
     tmax = 8.5;
 elseif strcmp(lower(varname),'grid') == 1

@@ -25,7 +25,7 @@ global rep_kml_global kml_global
         caxis([0 tmax]);
     
     elseif strcmp(lower(varname),'ph') == 1
-        cmocean('speed')
+        cmocean('phase')
         c.Label.String = 'pH';
         caxis([7.9 8.5]);
         c.Ticks = [7.9:.1:8.5];
