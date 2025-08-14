@@ -23,9 +23,9 @@ clear opts
 T.date = datetime(T.unixTimestamp, 'ConvertFrom', 'posixtime','TimeZone','UTC');
 
 % define time range
-% e.g., past 24 hrs
+% e.g., past 6 hrs
 end_time = datetime('now','TimeZone','UTC'); 
-start_time = end_time - hours(24); 
+start_time = end_time - hours(6); 
 start_time.TimeZone = "UTC";
 d = T.date >= start_time & T.date <= end_time ;
 T = T(d,:);
