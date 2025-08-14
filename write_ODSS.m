@@ -31,7 +31,7 @@ d = T.date >= start_time & T.date <= end_time ;
 T = T(d,:);
 
 % apply binning to ship data if necessary
-interval = 10 ; % in minutes
+interval = 5 ; % in minutes
 k = T.Platform == 'Ship' ;
 ship = T(k,:) ;
 rest = T(~k,:) ;
