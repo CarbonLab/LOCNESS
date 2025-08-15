@@ -36,7 +36,7 @@ if nargin < 2 || isempty(dens_thresh)
 end
 
 if nargin < 3 || isempty(ref_pres)
-    ref_pres = 8;  % default reference pressure in dbar
+    ref_pres = 12;  % default reference pressure in dbar
 end
 
 %%
