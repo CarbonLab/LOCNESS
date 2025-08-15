@@ -44,22 +44,25 @@ classdef LRAUVDataHandler < handle
         end
 
         function readLRAUVCSV(obj)
-            obj.T_raw = readtable(obj.localFile,obj.ReadOptions);
-            obj.T_raw.datetime = datetime(obj.T_raw.datetime, ...
+            t = readtable(obj.localFile,obj.ReadOptions);
+            t.datetime = datetime(t.datetime, ...
                 "InputFormat", "yyyy-MM-dd HH:mm:ss.SSSSSSXXX", ...
                 "TimeZone", "UTC");
-            obj.T_raw = obj.T_raw(obj.T_raw.datetime >= datetime(2025,8,11,0,0,0,"TimeZone","UTC"), :); % data before this date is from testing
+            t = t(t.datetime >= datetime(2025,8,11,0,0,0,"TimeZone","UTC"), :); % data before this date is from testing
+            t.pressure = gsw_p_from_z(-1 .* t.depth,t.latitude); % check latitude vs latitude fix
+            t.pHin = phcalc_jp(t.vrse, t.depth, t.temperature, t.salinity, obj.k0, obj.k2, obj.fp);
+            obj.T_raw = t;
         end
 
         function buildTableLRAUV(obj)
             if isempty(obj.T_raw)
-                obj.T_raw = readtable(obj.localFile,obj.ReadOptions);
+                obj.readLRAUVCSV;
             end
             t = obj.T_raw;
-            t.datetime = datetime(t.EpochSeconds,'ConvertFrom','posixtime') ;
-            t.pressure = NaN(size(t.depth));
-            d = t.depth >= 0 ;
-            t.pressure(d) = gsw_p_from_z(-1 .* t.depth(d),t.latitude(d)); % check latitude vs latitude fix
+%             t.datetime = datetime(t.EpochSeconds,'ConvertFrom','posixtime') ;
+%             t.pressure = NaN(size(t.depth));
+%             d = t.depth >= 0 ;
+%             t.pressure(d) = gsw_p_from_z(-1 .* t.depth(d),t.latitude(d)); % check latitude vs latitude fix
             t.unixTimestamp = t.EpochSeconds ; % is this the same?
             t.rhodamine = t.rhodamine ;
             t.pHin = phcalc_jp(t.vrse, t.pressure, t.temperature, t.salinity, obj.k0, obj.k2, obj.fp);

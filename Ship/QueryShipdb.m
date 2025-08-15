@@ -55,8 +55,8 @@ result = jsondecode(output);
 tic;
 table_name = 'locness-underway-summary';
 % Single query for the day
-start_time = '2025-08-11T10:00:00Z';
-end_time = '2025-08-11T11:00:00Z';
+end_time = datetime('now', 'Format', 'uuuu-MM-dd''T''HH:mm:ss''Z''', 'TimeZone', 'UTC');
+start_time = end_time - seconds(60);
 key_condition = '"static_partition = :pk AND datetime_utc BETWEEN :start_dt AND :end_dt"';
 attr_values = ['"{\":pk\":{\"S\":\"data\"},\":start_dt\":{\"S\":\"', char(start_time), '\"},\":end_dt\":{\"S\":\"', char(end_time), '\"}}"'];
 limit = '1800';
@@ -73,6 +73,32 @@ toc
 %%
 % key_condition = '"static_partition = :pk AND datetime_utc >= :start_dt"';
 % attr_values = '"{\":pk\":{\"S\":\"data\"},\":start_dt\":{\"S\":\"2025-08-11T00:00:00Z\"}}"';
+%% Return the last record
+table_name = 'locness-underway-summary';
+key_condition = '"static_partition = :pk"';
+attr_values = '"{\":pk\":{\"S\":\"data\"}}"';
+region = 'us-east-1';
+profile = 'RVCONNDB';
+
+% Scan descending order and return only 1 item
+limit = '1';
+scan_forward = '--scan-index-forward false';
+
+command = sprintf(['aws dynamodb query --table-name %s ', ...
+    '--key-condition-expression %s ', ...
+    '--expression-attribute-values %s ', ...
+    '--limit %s %s ', ...
+    '--region %s --output json --profile %s'], ...
+    table_name, key_condition, attr_values, limit, scan_forward, region, profile);
+
+[status, output] = system(command);
+result = jsondecode(output);
+%% Test handler function
+tic
+handler = ShipDataHandler();
+handler.AppendCurrentLocation();
+handler.copyToGliderviz();
+toc
 %%
 % Generic function to convert DynamoDB items to table
 function data_table = dynamodb_to_table(items)

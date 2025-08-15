@@ -4,26 +4,26 @@ addpath(genpath('C:\Users\spraydata\Documents\GitHub\'));
 rmpath(genpath('C:\Users\spraydata\Documents\GitHub\MBARIWireWalker'));
 %% Controlls
 % Put controls here when that is integrated into classes
-%% Pull the latest shipboard data, resample, and write to map product
-processShipData = 1;
-if processShipData == 1
-    try
-        tic
-        handler = ShipDataHandler();
-        handler.querytable(0.2); % 0.2 hr ~10 min
-        handler.resampleData(5); % 5 min
-        handler.appendMapProduct(); % append map product
+%% Pull the latest shipboard data, resample, and write to map product. Handled separately now.
+% processShipData = 0;
+% if processShipData == 1
+%     try
+%         tic
+%         handler = ShipDataHandler();
+%         handler.querytable(0.2); % 0.2 hr ~10 min
+%         handler.resampleData(5); % 5 min
+%         handler.appendMapProduct(); % append map product
 %         lat = handler.currentPosition.lat;
 %         lon = handler.currentPosition.lon;
 %         sdn = datenum(datetime(handler.currentPosition.unixTimestamp, ...
 %                            'ConvertFrom', 'posixtime', ...
 %                            'TimeZone', 'UTC'));
 %         update_ODSS_pos_ship('RV_Conn', sdn, lon, lat);
-        shipdownload = toc;
-    catch
-        disp('failed to process ship data')
-    end
-end
+%         shipdownload = toc;
+%     catch
+%         disp('failed to process ship data')
+%     end
+% end
 %% Process Spray 2 data
 ProcessSpray2Data = 1;
 if ProcessSpray2Data == 1

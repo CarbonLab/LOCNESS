@@ -22,6 +22,7 @@ classdef ShipDataHandler < handle
         T_resample
         dynamodb_status
         tbl % Raw table
+        Currentidx
     end
 
     methods
@@ -61,6 +62,28 @@ classdef ShipDataHandler < handle
             % Use the function
             obj.tbl = dynamodb_to_table(result.Items);
             obj.tbl(end,:) = []; % Last table entry is usually 0 likely because mid upload
+        end
+
+        function FindLastIndex(obj)
+            t = obj.tbl;
+            % Columns to check
+            colsToCheck = {'vrse','ph_total','latitude','longitude','ph_corrected',...
+                'ph_corrected_ma','ph_total_ma','rho_ppb','salinity','temp'};
+            
+            % Start from last row
+            rowIdx = height(t);
+            
+            while rowIdx > 0
+                rowData = table2array(t(rowIdx, colsToCheck));
+                
+                if all(rowData ~= 0) % No zeros found
+                    break; % Found the row we want
+                end
+                
+                rowIdx = rowIdx - 1; % Move up
+            end
+            
+            obj.Currentidx = rowIdx;
         end
 
         function resampleData(obj, n)
@@ -104,13 +127,14 @@ classdef ShipDataHandler < handle
         end
         
         function GetCurrentData(obj)
-            obj.querytable(1/120);
-            obj.T_resample = obj.tbl(end,:);
+            obj.querytable(1/60); % query 1 minute of data
+            obj.FindLastIndex; % idx last non zero row
+            obj.T_resample = obj.tbl(obj.Currentidx,:); % Last data point
         end
 
-        function copyToGliderviz(obj, filePath)
+        function copyToGliderviz(obj)
             % COPYTOGLIDERVIZ - Copy file to the Gliderviz folder
-            copyfile(filePath, obj.glidervizFolder);
+            copyfile(obj.mapProductFile, obj.glidervizFolder);
         end
         
         function CurrentLocation(obj)
@@ -142,12 +166,54 @@ classdef ShipDataHandler < handle
             MapProduct.lon = T_resample_local.longitude;
             MapProduct.temperature = T_resample_local.temp;
             MapProduct.salinity = T_resample_local.salinity;
-            MapProduct.pHin = T_resample_local.ph_total; % or corrected?
+            MapProduct.pHin = T_resample_local.ph_corrected; % calculated with t,s
             MapProduct.pH25atm = NaN(size(T_resample_local.ph_total));
             MapProduct.rhodamine = T_resample_local.rho_ppb;
             MapProduct.MLD = NaN(size(T_resample_local.ph_total));
 
             obj.currentPosition = MapProduct;
+        end
+
+        function AppendCurrentLocation(obj)
+            % Build table to update odss
+            obj.GetCurrentData;
+            obj.CurrentLocation;
+
+            % Check if only one location
+            if height(obj.currentPosition) ~= 1
+                return; % No valid location to append
+            end
+            % Check if file exists
+            fileExists = isfile(obj.mapProductFile);
+            % Retry settings
+            maxRetries = 5;   % number of times to try
+            waitSeconds = 1;  % pause between tries (seconds)
+             % Wait until file is not locked (only if it exists)
+            if fileExists
+                retryCount = 0;
+                while retryCount < maxRetries
+                    [fid, msg] = fopen(obj.mapProductFile, 'a');
+                    if fid ~= -1
+                        fclose(fid); % file is available
+                        break;
+                    else
+                        retryCount = retryCount + 1;
+                        pause(waitSeconds);
+                    end
+                end
+        
+                % If after retries it’s still locked, give up
+                if fid == -1
+                    warning('Could not access "%s" after %d retries: %s', obj.mapProductFile, maxRetries, msg);
+                    return;
+                end
+            end
+            % Append or create file
+            if fileExists
+                writetable(obj.currentPosition, obj.mapProductFile, "WriteMode", "append");
+            else
+                writetable(MapProduct, obj.mapProductFile, "WriteMode", "overwrite");
+            end
         end
 
         function appendMapProduct(obj)
@@ -178,7 +244,7 @@ classdef ShipDataHandler < handle
             MapProduct.lon = T_resample_local.longitude;
             MapProduct.temperature = T_resample_local.temp;
             MapProduct.salinity = T_resample_local.salinity;
-            MapProduct.pHin = T_resample_local.ph_total; % or corrected?
+            MapProduct.pHin = T_resample_local.ph_corrected; % calculed with t,s
             MapProduct.pH25atm = NaN(size(T_resample_local.ph_total));
             MapProduct.rhodamine = T_resample_local.rho_ppb;
             MapProduct.MLD = NaN(size(T_resample_local.ph_total));
