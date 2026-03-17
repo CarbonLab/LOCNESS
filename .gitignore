@@ -11,4 +11,5 @@ env/
 Animation/NUL
 
 # PostProcessing
-PostProcessingAnalysis/data
+PostProcessingAnalysis/data/*
+!PostProcessingAnalysis/data/.gitkeep

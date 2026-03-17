@@ -62,5 +62,3 @@ xticks(floor(min(xlim)/0.01)*0.01:0.01:ceil(max(xlim)/0.01)*0.01)
 
 linkaxes([n1 n2],'xy')
 saveas(fig,'figures/BIAS.png');
-%% BIAS
-BIAS = 0.012; % Rough estimate
