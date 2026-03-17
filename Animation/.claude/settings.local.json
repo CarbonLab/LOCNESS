@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(powershell -Command:*)",
+      "Bash(python -c:*)",
+      "Bash(pip install:*)",
+      "Bash(where:*)",
+      "Bash(\"c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\.venv\\\\Scripts\\\\python.exe\" -c \"\nimport pandas as pd\ndf = pd.read_csv\\(r''c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\data\\\\LocnessMapProduct_08252025.txt''\\)\nfor platform in df[''Platform''].unique\\(\\):\n    sub = df[\\(df[''Platform'']==platform\\) & \\(df[''lat'']>1\\) & \\(df[''lon'']<-1\\)].dropna\\(subset=[''unixTimestamp'',''lat'',''lon'']\\)\n    cruises = sub[''Cruise''].unique\\(\\)\n    layers = sub[''Layer''].unique\\(\\)\n    import datetime\n    if len\\(sub\\) > 0:\n        t0 = datetime.datetime.fromtimestamp\\(sub[''unixTimestamp''].min\\(\\), tz=datetime.timezone.utc\\)\n        t1 = datetime.datetime.fromtimestamp\\(sub[''unixTimestamp''].max\\(\\), tz=datetime.timezone.utc\\)\n        print\\(f''{platform}: {len\\(sub\\)} pts, cruises={list\\(cruises\\)}, layers={list\\(layers\\)}, {t0:%m/%d} -> {t1:%m/%d}''\\)\n    else:\n        print\\(f''{platform}: no valid points''\\)\n\")",
+      "Bash(\"c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\.venv\\\\Scripts\\\\python.exe\" -c \"\nimport pandas as pd\ndf = pd.read_csv\\(r''c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\data\\\\LocnessMapProduct_08252025.txt''\\)\ndf = df[\\(df[''lat'']>1\\) & \\(df[''lon'']<-1\\)].dropna\\(subset=[''unixTimestamp'',''lat'',''lon'']\\)\ndrifters = df[df[''Platform'']==''Drifter'']\nfor c in drifters[''Cruise''].unique\\(\\):\n    track = drifters[drifters[''Cruise'']==c].drop_duplicates\\(subset=[''unixTimestamp'']\\).sort_values\\(''unixTimestamp''\\)\n    if len\\(track\\) > 1:\n        print\\(f''{c}: {len\\(track\\)} pts''\\)\n\")",
+      "Bash(\"c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\.venv\\\\Scripts\\\\python.exe\" \"c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\rv_connecticut_animation.py\")",
+      "Bash(\"c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\.venv\\\\Scripts\\\\python.exe\" -c \"\nfrom PIL import Image\nimg = Image.open\\(r''c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\rv_connecticut_animation.gif''\\)\nimg.seek\\(130\\)\nimg.save\\(r''c:\\\\Users\\\\bwerb\\\\Documents\\\\GitHub\\\\LOCNESS\\\\Animation\\\\preview_frame.png''\\)\n\")"
+    ]
+  }
+}

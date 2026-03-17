@@ -1,3 +1,14 @@
 # ignore all files in the logs directory
 /logs
 logs/debugging_log.txt
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# Windows reserved device name (cannot be committed on Windows)
+Animation/NUL
+
+# PostProcessing
+PostProcessingAnalysis/data
