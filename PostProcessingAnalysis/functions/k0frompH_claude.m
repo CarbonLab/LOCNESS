@@ -1,4 +1,4 @@
-function k0 = k0frompH(Vrs, Press, Temp, Salt, pHtot, k2, Pcoefs)
+function k0 = k0frompH_claude(Vrs, Press, Temp, Salt, pHtot, k2, Pcoefs)
 %
 % Algebraic inverse of phcalc.m.  All constants and thermodynamic
 % expressions are copied verbatim from phcalc.m (verified against the
