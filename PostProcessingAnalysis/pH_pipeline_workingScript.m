@@ -21,7 +21,9 @@
 
 %% Load data
 load('data/data.mat');
-
+ESPER = data.ESPER ;
+%% run lagFromRobert to lag
+data.ESPER = ESPER;
 %% Interpolate CTD s,t onto pH depth grid; compute GSW density
 % CTD and pH are sampled on different depth grids per profile.
 % data.ESPER.s/t are already on the same depth grid as data.ph (confirmed).
@@ -117,7 +119,7 @@ fig = figure;
 set(gcf,'Position',[67 44 1149 822])
 tl = tiledlayout(ndepths,1);
 title(tl,'SN209: pH','Interpreter','none','fontsize',24)
-xlabel(tl,'profile','fontsize',16)
+xlabel(tl,'profile','fontsize',19)
 for id = 1:ndepths
     nexttile; hold on
     scatter(1:ndive, pH_depth(:,id),    'o', 'MarkerEdgeColor', [0 0.4470 0.7410])
@@ -132,13 +134,13 @@ fig = figure;
 set(gcf,'Position',[67 44 1149 822])
 tl = tiledlayout(ndepths,1);
 title(tl,'SN209: \DeltapH (raw-ESPER)','fontsize',24)
-xlabel(tl,'profile','fontsize',16)
+xlabel(tl,'profile','fontsize',19)
 for id = 1:ndepths
     nexttile
     scatter(1:ndive, pH_depth(:,id) - ESPER_depth(:,id), 'o', 'MarkerEdgeColor', [0.4706    0.8118    0.0235])
     ylabel(sprintf('\x0394pH %.0fm', depth_levels(id)), 'Interpreter', 'none')
     xlim([0 ndive]); grid on
-    ylim([-.08 -.04])
+    %ylim([-.08 -.04])
 end
 saveas(fig,'SN209_deltapH.png');
 
@@ -147,7 +149,7 @@ fig = figure;
 set(gcf,'Position',[67 44 1149 822])
 tl = tiledlayout(ndepths,1);
 title(tl,'SN209: salinity','Interpreter','none','fontsize',24)
-xlabel(tl,'profile','fontsize',16)
+xlabel(tl,'profile','fontsize',19)
 for id = 1:ndepths
     nexttile; hold on
     scatter(1:ndive, s_depth(:,id),     'o', 'MarkerEdgeColor', [0 0.4470 0.7410])
@@ -162,7 +164,7 @@ fig = figure;
 set(gcf,'Position',[67 44 1149 822])
 tl = tiledlayout(ndepths,1);
 title(tl,'SN209: temperature','Interpreter','none','fontsize',24)
-xlabel(tl,'profile','fontsize',16)
+xlabel(tl,'profile','fontsize',19)
 for id = 1:ndepths
     nexttile; hold on
     scatter(1:ndive, t_depth(:,id),     'o', 'MarkerEdgeColor', [0 0.4470 0.7410])
@@ -177,7 +179,7 @@ fig = figure;
 set(gcf,'Position',[67 44 495 822])
 tl = tiledlayout(ndepths,1);
 title(tl,'SN209: pH vs salinity','Interpreter','none','fontsize',24)
-xlabel(tl,'salinity','fontsize',16)
+xlabel(tl,'salinity','fontsize',19)
 for id = 1:ndepths
     nexttile; hold on
     scatter(s_depth(:,id),     pH_depth(:,id),    'o', 'MarkerEdgeColor', [0 0.4470 0.7410])
@@ -193,7 +195,7 @@ fig = figure;
 set(gcf,'Position',[67 44 495 822])
 tl = tiledlayout(ndepths,1);
 title(tl,'SN209: pH vs temperature','Interpreter','none','fontsize',24)
-xlabel(tl,'temperature','fontsize',16)
+xlabel(tl,'temperature','fontsize',19)
 for id = 1:ndepths
     nexttile; hold on
     scatter(t_depth(:,id),     pH_depth(:,id),    'o', 'MarkerEdgeColor', [0 0.4470 0.7410])
@@ -300,7 +302,7 @@ for d = 1:ndepths
     scatter(1:ndive, pH_iso{d} - ESPER_iso{d}, 'o', 'MarkerEdgeColor', [0.4706    0.8118    0.0235])
     ylabel(sprintf('\\Delta pH \\sigma=%.4f', ref_sigma(d)), 'Interpreter', 'tex')
     xlim([0 ndive]); grid on
-    ylim([-.08 -.04])
+    %ylim([-.08 -.04])
 end
 saveas(fig, 'SN209_deltapH_isopycnal.png');
 
@@ -496,7 +498,7 @@ for d = 1:ndepths
     plot(s_fit, polyval(p_ph,  s_fit), '-', 'Color', [0 0.4470 0.7410], 'LineWidth', 1.5)
     plot(s_fit, polyval(p_esp, s_fit), '-', 'Color', [1 0 0],           'LineWidth', 1.5)
     ylabel(norm_labels{d}, 'Interpreter', 'tex')
-    title(sprintf('dpH/dS: raw=%.4f  ESPER=%.4f', p_ph(1), p_esp(1)), 'fontsize', 9)
+    title(sprintf('dpH/dS: raw=%.4f  ESPER=%.4f', p_ph(1), p_esp(1)), 'fontsize', 16)
     grid on
 end
 
@@ -522,14 +524,14 @@ for d = 1:ndepths
     yline(0, '--k')
     ylabel(norm_labels{d}, 'Interpreter', 'tex')
     xlim([0 ndive]); grid on
-    ylim([-0.08 -0.04])
+   % ylim([-0.08 -0.04])
 end
 legend('\DeltapH raw', '\DeltapH S-norm', 'Location', 'best')
 saveas(fig_delta, 'SN209_deltapH_sal_normalized.png');
 %% Use the plots from above to choose how to find the drifts in pH
 
 
-%% Reference selection
+% Reference selection
 % ref_mode: 'depth'     — deepest depth level (pH_depth / ESPER_depth)
 %           'isopycnal' — deepest isopycnal level (pH_iso / ESPER_iso)
 %           'snorm'     — S-normalised series (pH_norm / ESPER_norm)
@@ -572,35 +574,131 @@ anomaly  = ph_meas_ref - ph_esper_ref;
 has_data = ~isnan(anomaly);
 
 %% BIC changepoint detection
-% BIC(k) = n*log(RSS_k/n) + (k+1)*log(n)
-% k = number of changepoints; k+1 = number of segment means
+% -------------------------------------------------------------------------
+%  TOGGLE: set bic_method to choose detection approach
+%    'mean'  — original: piecewise constant means (findchangepts, standard BIC)
+%    'sage'  — SAGE-like: piecewise linear trends (ischange, modified BIC with
+%              errorLim noise floor, per-observation penalty)
+% -------------------------------------------------------------------------
+bic_method = 'sage';     % <-- switch here: 'mean' or 'sage'
+errorLim   = 0.004;      % pH noise floor [pH units] — used in 'sage' mode only
+
 anom_use = anomaly(has_data);
 n_v      = numel(anom_use);
-max_cp   = min(2, floor(n_v / 10));
 
-BIC_val    = nan(max_cp + 1, 1);
-rss0       = sum((anom_use - nanmean(anom_use)).^2);
-BIC_val(1) = n_v * log(rss0 / n_v) + 1 * log(n_v);   % k=0: 1 segment mean
-
-for k = 1:max_cp
-    [~, rss_k]   = findchangepts(anom_use, 'MaxNumChanges', k, 'Statistic', 'mean');
-    BIC_val(k+1) = n_v * log(rss_k / n_v) + (k + 1) * log(n_v);
-end
-
-[~, best_idx] = min(BIC_val);
-best_k        = best_idx - 1;
-fprintf('BIC-optimal changepoints: %d\n', best_k);
-
-if best_k > 0
-    cp_local = findchangepts(anom_use, 'MaxNumChanges', best_k, 'Statistic', 'mean');
-else
-    cp_local = [];
-end
-
-% Map local indices back to full profile indices
+% ---- profile indices and cycle numbers for the non-NaN subset ------------
 has_data_idx = find(has_data);
-cp_idx       = has_data_idx(cp_local);
-cp_dn        = dn_asc(cp_idx);
+
+switch bic_method
+
+    % ======================================================================
+    case 'mean'
+    % Standard BIC: piecewise constant means via findchangepts
+    % BIC(k) = n*log(RSS/n) + (k+1)*log(n)
+    % ======================================================================
+        max_cp = min(3, floor(n_v / 10));
+
+        BIC_val    = nan(max_cp + 1, 1);
+        rss0       = sum((anom_use - mean(anom_use, 'omitmissing')).^2);
+        BIC_val(1) = n_v * log(rss0 / n_v) + 1 * log(n_v);   % k=0: 1 segment mean
+
+        for k = 1:max_cp
+            [~, rss_k]   = findchangepts(anom_use, 'MaxNumChanges', k, 'Statistic', 'mean');
+            BIC_val(k+1) = n_v * log(rss_k / n_v) + (k + 1) * log(n_v);
+        end
+
+        [~, best_idx] = min(BIC_val);
+        best_k        = best_idx - 1;
+        fprintf('[BIC-mean]  optimal changepoints: %d\n', best_k);
+
+        if best_k > 0
+            cp_local = findchangepts(anom_use, 'MaxNumChanges', best_k, 'Statistic', 'mean');
+        else
+            cp_local = [];
+        end
+
+    % ======================================================================
+    case 'sage'
+    % SAGE-like BIC: piecewise linear trends via ischange
+    % BIC(k) = log(RSS/n + errorLim^2) + K*log(n)/n
+    % K = (k+1)*2 + 2  (2 params per segment + 2 extra)
+    % errorLim regularises against fitting noise below sensor precision
+    % ======================================================================
+        if ~exist('ischange', 'file')
+            error('ischange not found — requires Signal Processing Toolbox R2017a+');
+        end
+
+        % Interpolate over any remaining NaNs (ischange cannot handle them)
+        anom_sage = anom_use;
+        xnan = isnan(anom_sage);
+        if any(xnan)
+            t_local = (1:n_v)';
+            anom_sage(xnan) = interp1(t_local(~xnan), anom_sage(~xnan), ...
+                                      t_local(xnan), 'linear', 'extrap');
+            fprintf('[BIC-sage]  interpolated %d NaN(s) for ischange\n', sum(xnan));
+        end
+
+        max_cp  = min(round(n_v/4 - 1), 10);   % SAGE cap: n/4-1, hard cap at 10
+        max_cp  = max(max_cp, 1);
+
+        BIC_val      = nan(1, max_cp);
+        Nchpts_found = zeros(1, max_cp);
+        cp_local_all = cell(1, max_cp);
+        best_BIC     = inf;
+        best_k       = 0;
+        cp_local     = [];
+
+        % k=0 baseline — one linear segment
+        NN      = (1:n_v)';
+        p0      = polyfit(NN, anom_sage, 1);
+        resid0  = anom_sage - polyval(p0, NN);
+        R0      = sum(resid0.^2, 'omitmissing');
+        K0      = 4;   % 1 segment × 2 params + 2
+        BIC0    = log(R0/n_v + errorLim^2) + K0 * log(n_v) / n_v;
+
+        for k = 1:max_cp
+            [TF, S1, S2] = ischange(anom_sage, 'linear', 'MaxNumChanges', k);
+            if sum(TF) == 0
+                continue
+            end
+
+            % Reconstruct piecewise linear fit
+            segline = S1 .* NN + S2;
+            myresids = anom_sage - segline;
+            R = sum(myresids.^2, 'omitmissing');
+
+            n_cp_found     = sum(TF);
+            Nchpts_found(k) = n_cp_found;
+            K = (n_cp_found + 1) * 2 + 2;
+            BIC_val(k) = log(R/n_v + errorLim^2) + K * log(n_v) / n_v;
+
+            cp_local_all{k} = find(TF)';   % local indices into anom_use
+
+            if BIC_val(k) < best_BIC
+                best_BIC = BIC_val(k);
+                best_k   = n_cp_found;
+                cp_local = cp_local_all{k};
+            end
+        end
+
+        % Check if k=0 (single linear segment) beats all changepoint models
+        if BIC0 < best_BIC
+            best_k   = 0;
+            cp_local = [];
+            fprintf('[BIC-sage]  k=0 (single linear segment) is optimal\n');
+        end
+
+        fprintf('[BIC-sage]  optimal changepoints: %d  (BIC=%.4f)\n', best_k, min([BIC0, BIC_val], [], 'omitmissing'));
+
+    otherwise
+        error('bic_method must be ''mean'' or ''sage''');
+end
+
+% Map local indices in anom_use back to full profile indices
+cp_idx = has_data_idx(cp_local);
+cp_dn  = dn_asc(cp_idx);
+
+fprintf('Changepoint profile indices: '); fprintf('%d  ', cp_idx); fprintf('\n');
 
 %% Drift correction: linear fit per segment, applied to raw profiles
 % Time axis: days since first profile
