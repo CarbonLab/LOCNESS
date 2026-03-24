@@ -53,7 +53,7 @@ hold on
 xline(0,Color='red',LineStyle='--')
 axis ij
 xlabel(['Spec pH - (ESPER PH - | ',num2str(BIAS), ' |)'])
-title('ESPER ADJUSTED')
+title('ESPER Corrected')
 scatter(CTD.SPEC_ESPER_ADJUST_DIFFERENCE(3),CTD.Depth(3),'rx')
 text(CTD.SPEC_ESPER_ADJUST_DIFFERENCE(3)+.1*CTD.SPEC_ESPER_DIFFERENCE(3),CTD.Depth(3),'QC: BAD','FontSize',6,'HorizontalAlignment','right')
 xlim([-max(abs(CTD.SPEC_ESPER_DIFFERENCE)) max(abs(CTD.SPEC_ESPER_DIFFERENCE))])
@@ -61,4 +61,9 @@ xticks(floor(min(xlim)/0.01)*0.01:0.01:ceil(max(xlim)/0.01)*0.01)
 % xtickangle(65)
 
 linkaxes([n1 n2],'xy')
-saveas(fig,'figures/BIAS.png');
+
+%% Output directory
+outdir = fullfile("figures", "ESPER_BIAS");
+if ~exist(outdir, 'dir'), mkdir(outdir); end
+figname = fullfile(outdir, 'BIAS.png');
+saveas(fig,figname);

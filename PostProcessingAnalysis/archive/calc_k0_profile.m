@@ -74,7 +74,7 @@ load('data.mat');
 if isempty(data.ESPER.ph) % Check if data.mat already has ESPER struct
     ndive = length(data.ph.p);
     data.ESPER.ph = cell(ndive,1);
-    data.ESPER.ph_adjusted = cell(ndive,1);
+    data.ESPER.ph_corrected = cell(ndive,1);
     data.ESPER.s = cell(ndive,1);
     data.ESPER.t = cell(ndive,1);
     data.ESPER.oxumolkg = cell(ndive,1);
@@ -104,11 +104,11 @@ if isempty(data.ESPER.ph) % Check if data.mat already has ESPER struct
         lon = repmat(data.lon(prof,1),length(data.ph.depth{prof}(iuse)),1);
         sdn = repmat(data.time(prof,1)/86400 + datenum(1970,1,1),length(data.ph.depth{prof}(iuse)),1);
         data.ESPER.ph{prof} = NaN(size(data.ESPER.s{prof})); % Save time by only calc esper for ascent dives below 150 m
-        data.ESPER.ph_adjusted{prof} = NaN(size(data.ESPER.s{prof}));
+        data.ESPER.ph_corrected{prof} = NaN(size(data.ESPER.s{prof}));
         if ~isempty(lat) && ~isempty(lon) && ~isempty(sdn)
             ESP = ESPER_TSO(lat,lon,data.ESPER.depth{prof}(iuse),data.ESPER.s{prof}(iuse),data.ESPER.t{prof}(iuse),data.ESPER.oxumolkg{prof}(iuse),sdn);
             data.ESPER.ph{prof}(iuse) = ESP.pH;
-            data.ESPER.ph_adjusted{prof}(iuse) = ESP.pH - abs(BIAS);
+            data.ESPER.ph_corrected{prof}(iuse) = ESP.pH - abs(BIAS);
         else
             continue
         end
@@ -138,12 +138,12 @@ k2 = g.pHcal.k2_fp_c0;
 data.ph.k0_ESPER_ADJUSTED = cell(ndive,1);
 
 for prof = 1:ndive
-    if ~isempty(data.ESPER.ph_adjusted{prof})
+    if ~isempty(data.ESPER.ph_corrected{prof})
         data.ph.k0_ESPER_ADJUSTED{prof} = k0frompH(data.ph.Vrse{prof},...
             data.ph.p{prof},...
             data.ESPER.t{prof},...
             data.ESPER.s{prof},...
-            data.ESPER.ph_adjusted{prof},...
+            data.ESPER.ph_corrected{prof},...
             k2, Pcoefs);
     else
         continue
