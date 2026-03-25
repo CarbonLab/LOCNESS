@@ -102,7 +102,14 @@ for profile = 1:ndive
     profile_idx(profile, :) = [cursor + 1, cursor + n];
     cursor = cursor + n;
 end
+% --- Sanitize inputs: strip complex values to NaN ---
+% 2508021001 has some strange issues with complex values in s and ox ---
+all_s(~isreal(all_s))   = NaN;
+all_ox(~isreal(all_ox)) = NaN;
 
+% Cast to real double to be safe
+all_s  = real(double(all_s));
+all_ox = real(double(all_ox));
 % --- Single ESPER_TSO call ---
 if ~isempty(all_lat)
     disp('Running ESPER_TSO on all profiles...');
