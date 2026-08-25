@@ -32,7 +32,7 @@ function data = ph_sp2(data,mission,opname,varargin)
 
 % parameters
 %calfile = '/Users/Shared/spray/data/csv/ph_cal.csv';
-calfile = '/Users/straylor/Library/CloudStorage/GoogleDrive-straylor@mbari.org/My Drive/LOCNESS/data/ph_cal_locness_corrected.csv';
+calfile = 'C:\Users\bwerb\Documents\GitHub\Spray2_Processing\parsing\ph_cal.csv';
 Ctd_Good = 0;
 dt = 0; % default time shift, s
 
@@ -53,7 +53,6 @@ if nargin > 3
         end
     end
 end
-
 % determine if flash or sat data;
 if isfield(data.eng,'psurf') % flash
     isflash = true;
@@ -122,6 +121,7 @@ for n = 1:ndive
 end
 
 % read calibration file and find row for this mission
+sprintf('calibration file: %s',calfile)
 if exist(calfile,"file")
     opts = delimitedTextImportOptions("NumVariables", 11);
 
@@ -143,7 +143,7 @@ if exist(calfile,"file")
 
    ph_cal = readtable(calfile,opts);
    missions = ph_cal{:,1};
-   imission = find(strcmp(missions,mission));
+   imission = find(strcmp(missions,mission),1);
    if ~isempty(imission) % found calibration data
       data.cal.ph = true;
       k0 = ph_cal{imission,3};

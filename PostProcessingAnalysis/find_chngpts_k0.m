@@ -1,6 +1,7 @@
-missionID = '2508021001';
+missionID = '2507020902';
 SN        = missionID(6:8);
 fname     = fullfile("data", [missionID, '_esper.mat']);
+reference_anomaly_method = 'depth';
 load(fname);
 
 % --- Load calibration ---
@@ -11,11 +12,26 @@ ph_cal = ph_cal(ismember(ph_cal.Mission, missionID), :);
 Pcoefs = [ph_cal.fp_k1, ph_cal.fp_k2, ph_cal.fp_k3, ...
           ph_cal.fp_k4, ph_cal.fp_k5, ph_cal.fp_k6]';
 
-%% Compute reference anomaly at depth
-depth          = 240;
-depthTolerance = 5;
-ndive          = length(data.ESPER.ph);
-profile        = 1:ndive;
+%% Reference surface settings
+switch reference_anomaly_method
+    case 'depth'
+        level          = 275;
+        levelTolerance = 1;
+        ref_field      = 'depth';
+        ref_label      = sprintf('Reference Depth %d +/- %d m', level, levelTolerance);
+        ref_filetag    = sprintf('depth%d', level);
+    case 'sigma'
+        level          = 26.8182;
+        levelTolerance = 0.01;
+        ref_field      = 'sigma';
+        ref_label      = sprintf('\\sigma_0 = %.2f \\pm %.2f kg/m^3', level, levelTolerance);
+        ref_filetag    = sprintf('sig0_%.2f', level);
+    otherwise
+        error('Unknown reference_anomaly_method: %s', reference_anomaly_method)
+end
+
+ndive   = length(data.ESPER.ph);
+profile = 1:ndive;
 
 % Pre-allocate
 data.ESPER.referenceAnomalyTimeSeries   = NaN(1, ndive);
@@ -25,11 +41,14 @@ data.ESPER.k0                           = NaN(1, ndive);
 data.ESPER.k0referenceAnomalyTimeSeries = NaN(1, ndive);
 data.ph.ph_correctedAtDepth             = NaN(1, ndive);
 
+%% Reference anomaly extraction loop
 for i = 1:ndive
     iphase = data.ph.phase{i} == 0;
-    if isempty(iphase), continue, end
-    [minDist, idepth] = min(abs(data.ESPER.depth{i}(iphase) - depth));
-    if minDist > depthTolerance, continue, end
+    if ~any(iphase), continue, end
+
+    ref_vec           = data.ESPER.(ref_field){i}(iphase);
+    [minDist, idepth] = min(abs(ref_vec - level));
+    if minDist > levelTolerance, continue, end
 
     iphase_idx = find(iphase);
     target_idx = iphase_idx(idepth);
@@ -47,9 +66,11 @@ for i = 1:ndive
         data.ESPER.ph_corrected{i}(target_idx), ph_cal.k2, Pcoefs);
     data.ESPER.k0referenceAnomalyTimeSeries(i) = ph_cal.k0 - data.ESPER.k0(i);
 end
+
 %% Output directory
 outdir = fullfile("figures", "k0_correct");
 if ~exist(outdir, 'dir'), mkdir(outdir); end
+
 %% BIC-based optimal changepoint selection
 max_changepoints = 5;
 bic_scores       = NaN(1, max_changepoints + 1);
@@ -61,7 +82,7 @@ y_fit = y(valid);
 x_fit = x(valid);
 n     = length(y_fit);
 
-errorLim = 0.001; % Noise of sensor ** Need to set this for k0**
+errorLim = 0;
 
 for k = 0:max_changepoints
     if k == 0
@@ -76,7 +97,6 @@ for k = 0:max_changepoints
         n_params    = 2 * (k + 1);
     end
     rss               = sum((y_fit - yhat).^2);
-    % bic_scores(k + 1) = n * log(rss / n) + n_params * log(n);
     bic_scores(k + 1) = n * log(rss/n + errorLim^2) + n_params * log(n);
 end
 
@@ -94,11 +114,12 @@ xlabel('Number of changepoints')
 ylabel('BIC')
 title(sprintf('BIC model selection — SN%s', SN))
 set(fig_bic, 'Units', 'inches', 'Position', [0 0 6 4]);
-figname_bic = fullfile(outdir, sprintf('SN%s_BIC_selection.png', SN));
+figname_bic = fullfile(outdir, sprintf('SN%s_BIC_selection_%s.png', SN, ref_filetag));
 exportgraphics(fig_bic, figname_bic, 'Resolution', 300);
 close(fig_bic);
 fprintf('Saved: %s\n', figname_bic);
-%% Fixed y-axis limits (consistent across all plots)
+
+%% Fixed y-axis limits
 ylim_ph_raw   = [min([data.ph.phAtDepth, data.ESPER.ph_correctedAtDepth], [], 'omitnan') - 0.01, ...
                  max([data.ph.phAtDepth, data.ESPER.ph_correctedAtDepth], [], 'omitnan') + 0.01];
 k0_range      = data.ESPER.k0referenceAnomalyTimeSeries(~isnan(data.ESPER.k0referenceAnomalyTimeSeries));
@@ -138,13 +159,16 @@ for n = 1:ndive
     end
 end
 
-%% Extract corrected pH at depth
+%% Extract corrected pH at reference surface
 data.ph.ph_correctedAtDepth = NaN(1, ndive);
 for i = 1:ndive
     iphase = data.ph.phase{i} == 0;
-    if isempty(iphase), continue, end
-    [minDist, idepth] = min(abs(data.ESPER.depth{i}(iphase) - depth));
-    if minDist > depthTolerance, continue, end
+    if ~any(iphase), continue, end
+
+    ref_vec           = data.ESPER.(ref_field){i}(iphase);
+    [minDist, idepth] = min(abs(ref_vec - level));
+    if minDist > levelTolerance, continue, end
+
     iphase_idx = find(iphase);
     target_idx = iphase_idx(idepth);
     data.ph.ph_correctedAtDepth(i) = data.ph.ph_corrected{i}(target_idx);
@@ -152,17 +176,15 @@ end
 
 rms_val = rms(data.ph.ph_correctedAtDepth - data.ESPER.ph_correctedAtDepth, 'omitnan');
 
-ylim_ph_corr = [min([data.ph.ph_correctedAtDepth, data.ESPER.ph_correctedAtDepth], [], 'omitnan') - 0.005, ...
-                max([data.ph.ph_correctedAtDepth, data.ESPER.ph_correctedAtDepth], [], 'omitnan') + 0.005];
-
-data.ph.BIC = {'chngpnts', BIC_changepoints; 'Ref Depth', depth; 'Depth Tolerance', depthTolerance};
+data.ph.BIC = {'chngpnts', BIC_changepoints; 'Ref Method', reference_anomaly_method; ...
+               'Ref Level', level; 'Tolerance', levelTolerance};
 
 %% QC Figure
 fig = figure('Visible', 'off');
 tl  = tiledlayout(2, 2);
 title(tl,    sprintf('pH Correction SN%s', SN))
-subtitle(tl, sprintf('BGC-ARGO Protocol | Reference Depth %d +/- %dm | BIC: %d changepoint(s) | RMS: %.4f', ...
-         depth, depthTolerance, BIC_changepoints, rms_val))
+subtitle(tl, sprintf('BGC-ARGO Protocol | %s | BIC: %d changepoint(s) | RMS: %.4f', ...
+         ref_label, BIC_changepoints, rms_val))
 
 ax1 = nexttile(tl, 1);
 plot(profile, data.ph.phAtDepth,              'o'); hold on
@@ -200,7 +222,7 @@ ylim(ylim_residual); xlim([0 max(profile)]); grid on
 title('Post-Correction Residuals')
 ylabel('\DeltapH (Corrected - ESPER)')
 
-figname = fullfile(outdir, sprintf('SN%s_BIC%d_k0_pH_Correction.png', SN, BIC_changepoints));
+figname = fullfile(outdir, sprintf('SN%s_BIC%d_%s_k0_pH_Correction.png', SN, BIC_changepoints, ref_filetag));
 set(fig, 'Units', 'inches', 'Position', [0 0 11 8.5]);
 exportgraphics(fig, figname, 'Resolution', 300);
 close(fig);

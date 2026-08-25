@@ -1,10 +1,11 @@
 %% Calculate ESPER parameters for the raw spray2 glider values
 % Interpolate everything onto the pH pressure grid
-missionID = '2507020902';
+missionID = '25B20901';
 fname = fullfile("data",[missionID,'.mat']);
 load(fname,'data');
 BIAS = str2double(readlines('BIAS.txt'));
 BIAS = BIAS(1);
+BIAS = 0;
 %% Optional pump lag adjustment
 % ph_cal = 'C:\Users\bwerb\Documents\GitHub\LOCNESS\PostProcessingAnalysis\data\ph_cal_locness_corrected.txt';
 % pump_time_lag = 5; % seconds to lag
@@ -15,27 +16,49 @@ data.ESPER.ph = cell(ndive,1);
 data.ESPER.ph_corrected = cell(ndive,1);
 data.ESPER.s = cell(ndive,1);
 data.ESPER.t = cell(ndive,1);
+data.ESPER.sigma = cell(ndive,1);
 data.ESPER.oxumolkg = cell(ndive,1);
+data.ph.time_unix       = cell(ndive, 1);
+data.ph.time_datetime   = cell(ndive, 1);
+data.ESPER.time_unix    = cell(ndive, 1);
+data.ESPER.time_datetime = cell(ndive, 1);
 data.ESPER.depth = data.ph.p;
 data.ESPER.depth = data.ph.depth;
 data.ESPER.sdn = data.time(:,1)/86400 + datenum(1970,1,1); % Start of dive time
+
 data.ESPER.bias = BIAS;
 for n = 1:ndive
     if ~isempty(data.ph.Vrse{n}) & ~isempty(data.ctd.s{n})
         [~,iuse] = unique(data.ctd.time{n});
+        [~,iusedox] = unique(data.dox.time{n});
         dox_flag_good = data.qual.dox.ox{n} == 0;
         if sum(iuse)>1
             % interpolate in time rather than pressure since time is monotonic
             data.ESPER.s{n} = interp1(data.ctd.time{n}(iuse),data.ctd.s{n}(iuse),data.ph.time{n},'linear','extrap'); 
             data.ESPER.t{n} = interp1(data.ctd.time{n}(iuse),data.ctd.t{n}(iuse),data.ph.time{n},'linear','extrap');
-            data.ESPER.oxumolkg{n} = interp1(data.dox.time{n}(dox_flag_good),data.dox.oxumolkg{n}(dox_flag_good),data.ph.time{n},'linear','extrap');
+            data.ESPER.sigma{n} = interp1(data.ctd.time{n}(iuse),data.ctd.sigma{n}(iuse),data.ph.time{n},'linear','extrap');
+            data.ESPER.oxumolkg{n} = interp1(data.dox.time{n}(iusedox),data.dox.oxumolkg{n}(iusedox),data.ph.time{n},'linear','extrap');
+            % --- Absolute timestamp for each pH observation ---
+            % data.time(ii,1) is the Unix start time of segment ii [s since 1970-01-01 UTC]
+            % data.ph.time{ii} is seconds elapsed since that segment start
+            t_unix = data.time(n,1) + data.ph.time{n};
+            data.ph.time_unix{n}     = t_unix;
+            data.ph.time_datetime{n} = datetime(t_unix, 'ConvertFrom', 'posixtime', ...
+                                                 'TimeZone', 'UTC');
+            data.ESPER.time_unix{n}     = t_unix;
+            data.ESPER.time_datetime{n} = datetime(t_unix, 'ConvertFrom', 'posixtime', ...
+                                                 'TimeZone', 'UTC');
         else
-            data.ph.ph{n} = nan(size(data.ph.Vrse{n}));
+            data.ph.ph{n}           = NaN(size(data.ph.Vrse{n}));
+            data.ph.time_unix{n}    = NaN(size(data.ph.Vrse{n}));
+            data.ESPER.time_unix{n} = NaN(size(data.ph.Vrse{n}));
         end
 
     end
 
 end
+%% Add Sigma to the struct here
+
 %% ESPER(TSO) **SLOW**
 % for profile = 1:ndive
 %     iuse = data.ph.depth{profile} > 250 & data.ph.phase{profile} == 0;
